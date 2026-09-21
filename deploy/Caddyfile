@@ -1,0 +1,9 @@
+{
+	email {$ACME_EMAIL}
+	admin off
+}
+
+{$SOFA_DOMAIN} {
+	# Caddy handles the HTTP-to-WebSocket upgrade automatically.
+	reverse_proxy signal:8787
+}

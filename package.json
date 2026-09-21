@@ -1,0 +1,24 @@
+{
+  "name": "sofa-funk", "productName": "SofaFunk", "version": "0.1.0",
+  "description": "Ein privater Platz fuer zwei: Chat, Audio, Video und Screensharing.",
+  "author": "Leterel", "license": "MIT", "private": true,
+  "engines": { "node": ">=22.12.0" },
+  "main": "desktop/main.cjs",
+  "scripts": {
+    "start": "electron .", "server": "node server/cli.mjs",
+    "test": "node --test test/*.test.mjs", "test:e2e": "node test/rtc.mjs",
+    "test:desktop": "node test/desktop-smoke.mjs",
+    "dist:win": "electron-builder --win nsis --x64",
+    "pack:win-portable": "electron-builder --win zip --x64",
+    "dist:linux": "electron-builder --linux AppImage tar.gz --x64"
+  },
+  "dependencies": { "ws": "8.21.3" },
+  "devDependencies": { "electron": "44.4.0", "electron-builder": "26.15.3", "playwright": "1.58.2" },
+  "build": {
+    "appId": "de.leterel.sofafunk", "directories": { "output": "dist" },
+    "files": ["desktop/**", "public/**", "server/**", "package.json", "LICENSE", "README.md"],
+    "win": { "target": ["nsis"], "signAndEditExecutable": false },
+    "nsis": { "oneClick": false, "perMachine": false, "allowToChangeInstallationDirectory": true, "createDesktopShortcut": true },
+    "linux": { "target": ["AppImage", "tar.gz"], "category": "Network" }
+  }
+}

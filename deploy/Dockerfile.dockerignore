@@ -1,0 +1,10 @@
+# Dockerfile-specific build allowlist: local secrets/build artifacts never enter
+# the build context. Paths are relative to the repository root (context: ..).
+**
+!package.json
+!package-lock.json
+!LICENSE
+!server/
+!server/**
+!public/
+!public/**
