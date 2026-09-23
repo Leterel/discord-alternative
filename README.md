@@ -5,7 +5,10 @@ Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 
 ## Installieren und starten
 
-**Windows:** `SofaFunk Setup 0.1.0.exe` ausführen, Installationsordner wählen
+[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.0)
+(privates Repository; GitHub-Anmeldung erforderlich).
+
+**Windows:** den SofaFunk-Installer (`.exe`) ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
 Codesigning-Zertifikat.
 
@@ -75,6 +78,17 @@ Der Integrationstest verbindet zwei echte WebRTC-Peers mit synthetischem Audio,
 Kamera- und Bildschirmmaterial. Er prüft Chat, RTP-Übertragung, Stop und Rejoin.
 Der Fenstertest prüft das echte Electron-Fenster und die isolierte
 Preload-Brücke. Details und offene Gerätetests: [PROGRESS.md](PROGRESS.md).
+
+Zusätzlich wurde am 23.09. eine Verbindung über einen echten lokalen coturn-Relay
+erzwungen und für beide Peers nachgewiesen. Das prüft Relay und temporäre
+Zugangsdaten; öffentliches Hosting und Verbindungen zwischen Heimnetzen bleiben
+separate Praxistests.
+
+Relay-Test auf Linux mit vorhandenem coturn und Chromium:
+`bash test/turn-relay.sh`. Er bindet nur Loopback, verwendet einen zufälligen
+Testschlüssel und beendet coturn anschließend. Optional `TURN_BIN` und
+`TEST_CHROME` auf vorhandene Binaries setzen. Die Belege landen in
+`test-results/turn/`; direkte Verbindungen können diesen Test nicht bestehen.
 
 ## Grenzen
 

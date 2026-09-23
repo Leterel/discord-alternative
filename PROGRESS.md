@@ -1,4 +1,4 @@
-# Fortschritt — 2026-09-21
+# Fortschritt — 2026-09-23
 
 ## Umgesetzt
 
@@ -24,10 +24,15 @@
 - Server- und Capture-Regressionssuite; Ergebnisdateien im Ausgabeordner.
 - Docker-Compose-Schema, Pflichtvariablen, Port-/Secret-Zuordnung und
   Startskript-Syntax geprüft. Keine Container gestartet.
+- Am 23.09.: echter coturn-Relay unter Ubuntu/WSL, produktive temporäre
+  HMAC-Zugangsdaten, beide WebRTC-Peers ausschließlich über TURN verbunden.
+  Ausgewählte ICE-Paare auf beiden Seiten `relay`/`relay`, Chat, RTP-Audio,
+  Videodecoding, Bildschirmstream und Wiederbeitritt bestanden.
+- Alle Quelltexte und Windows/Linux-Downloads am 23.09. im privaten GitHub-Repo
+  veröffentlicht: https://github.com/Leterel/discord-alternative/releases/tag/v0.1.0.
 
 ## Noch offen
 
 - Physische Mikrofone/Kameras und zwei verschiedene Heimnetze.
-- Echte TURN-Relay-Verbindung und öffentlich gültige TLS-Konfiguration.
+- TURN über das öffentliche Internet und öffentlich gültige TLS-Konfiguration.
 - CachyOS/Wayland-Portal-Picker und Vollinstallation auf beiden Zielrechnern.
-- GitHub-Push benötigt lokalen Git-Zugang; kein Geheimnis ist eingecheckt.
