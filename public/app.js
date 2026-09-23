@@ -253,7 +253,12 @@ async function toggle(kind) {
     if(alive(current)) { updateMedia();note('Nicht gestartet: '+error.message+' Prüfe die Gerätefreigabe in deinem Betriebssystem.'); }
   } finally{
     current.busy=false;
-    if (alive(current)) controls(current.channel?.readyState==='open' && current.pc.connectionState==='connected');
+    if (alive(current)) {
+      // A native picker timeout/failure can reject while our source dialog is
+      // still open. Dismiss it so the user can retry or leave the room.
+      if (kind==='screen') $('screens').close();
+      controls(current.channel?.readyState==='open' && current.pc.connectionState==='connected');
+    }
   }
 }
 for(const kind of ['mic','camera','screen'])$(kind).onclick=()=>toggle(kind);

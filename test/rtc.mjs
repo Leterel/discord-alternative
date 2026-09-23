@@ -4,18 +4,27 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { randomUUID } from 'node:crypto';
 import { createSignalServer } from '../server/signal.mjs';
+import { serverEndpoint } from '../deploy/check-server.mjs';
+const remoteEndpoint=process.env.TEST_SERVER_URL?serverEndpoint(process.env.TEST_SERVER_URL):undefined;
+const remoteSecret=process.env.TEST_ROOM_SECRET;
+if (Boolean(remoteEndpoint)!==Boolean(remoteSecret)) throw new Error('Set both TEST_SERVER_URL and TEST_ROOM_SECRET for an external server test.');
+if (remoteSecret&&remoteSecret.length<12) throw new Error('TEST_ROOM_SECRET must contain at least 12 characters.');
 const turnUrls=process.env.TEST_TURN_URLS;
 const turnSecret=process.env.TEST_TURN_SECRET;
 if (Boolean(turnUrls)!==Boolean(turnSecret)) throw new Error('Set both TEST_TURN_URLS and TEST_TURN_SECRET for relay verification.');
-const relayTest=Boolean(turnUrls);
+if (remoteEndpoint&&(turnUrls||turnSecret)) throw new Error('External tests use the server-issued TURN credentials; unset TEST_TURN_URLS and TEST_TURN_SECRET.');
+const relayTest=Boolean(remoteEndpoint||turnUrls);
 const outputDirectory=process.env.TEST_OUTPUT_DIR||'test-results';
 await mkdir(outputDirectory,{recursive:true});
-const service=createSignalServer({secret:'local-integration-test-secret',...(relayTest?{turnUrls,turnSecret}:{})});
-await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
-const port=service.server.address().port;
+const service=remoteEndpoint?undefined:createSignalServer({secret:'local-integration-test-secret',...(relayTest?{turnUrls,turnSecret}:{})});
+if (service) await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
+const signalUrl=remoteEndpoint?.href||`ws://127.0.0.1:${service.server.address().port}`;
+const pageUrl=signalUrl.replace(/^ws/, 'http');
+const room=`rtc_${randomUUID().replaceAll('-','')}`;
 const results=[];
-const browser=await chromium.launch({headless:true,executablePath:process.env.TEST_CHROME||undefined,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--autoplay-policy=no-user-gesture-required']});
+let browser, passed=false;
 const errors=[];
 async function actor(name) {
   const context=await browser.newContext({permissions:['camera','microphone'],viewport:{width:1350,height:900}});
@@ -34,14 +43,19 @@ async function actor(name) {
     };
   },{relayTest});
   const page=await context.newPage();page.on('pageerror',e=>errors.push(e.message));
-  await page.goto(`http://127.0.0.1:${port}`);
-  await page.locator('#server').fill(`ws://127.0.0.1:${port}`);
-  await page.locator('#name').fill(name);await page.locator('#secret').fill('local-integration-test-secret');
+  await page.goto(pageUrl);
+  await page.locator('#server').fill(signalUrl);
+  await page.locator('#room').fill(room);
+  await page.locator('#name').fill(name);
+  // Suppress Playwright's fill call log if this field fails: it would echo the key.
+  try { await page.locator('#secret').fill(remoteSecret||'local-integration-test-secret'); }
+  catch { throw new Error('Could not enter room key into the app.'); }
   return {page,context};
 }
 async function connected(a,b){await Promise.all([a,b].map(p=>p.waitForFunction(()=>document.getElementById('badge').textContent.includes('Zusammen'),{},{timeout:25000})));}
 async function received(page,kind){await page.waitForFunction(async kind=>{const stats=await window.testPeers.at(-1)?.getStats();return stats&&[...stats.values()].some(s=>s.type==='inbound-rtp'&&s.kind===kind&&s.bytesReceived>500);},kind,{timeout:20000});}
 try {
+  browser=await chromium.launch({headless:true,executablePath:process.env.TEST_CHROME||undefined,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--autoplay-policy=no-user-gesture-required']});
   const {page:a}=await actor('Mois');const {page:b}=await actor('Kollege');
   await a.screenshot({path:path.join(outputDirectory,'offline.png'),fullPage:true});
   await Promise.all([a.locator('#join').click(),b.locator('#join').click()]);await connected(a,b);results.push('Two independent browser contexts connected through actual WebSocket signaling + WebRTC');
@@ -83,8 +97,8 @@ try {
   await b.waitForFunction(()=>window.testStreams.every(s=>s.getTracks().every(t=>t.readyState==='ended')));results.push('Leaving stops own media and tears down peer');
   await b.locator('#join').click();await connected(a,b);
   await a.locator('#message').fill('Wieder da');await a.locator('#send').click();await b.locator('#messages').getByText('Wieder da',{exact:true}).waitFor();results.push('Rejoin establishes new functioning data channel');
-  assert.deepEqual(errors,[]);console.log(results.join('\n'));
+  assert.deepEqual(errors,[]);passed=true;console.log(results.join('\n'));
 } finally {
-  await writeFile(path.join(outputDirectory,'rtc-results.json'),JSON.stringify({results,errors,testedAt:new Date().toISOString(),limitations:['Synthetic capture sources; not physical devices',relayTest?'Real coturn relay; local test does not verify two home NATs or public TURN':'Loopback network; not two home NATs','Chromium engine; native screen picker and CachyOS Wayland need device checks']},null,2));
-  await browser.close();await service.close();
+  await writeFile(path.join(outputDirectory,'rtc-results.json'),JSON.stringify({passed,results,errors,testedAt:new Date().toISOString(),externalServer:Boolean(remoteEndpoint),limitations:['Synthetic capture sources; not physical devices',remoteEndpoint?'Separate server and TURN path from this computer; both peers still use the same client network':relayTest?'Real coturn relay; local test does not verify two home NATs or public TURN':'Loopback network; not two home NATs','Chromium engine; native screen picker and CachyOS Wayland need device checks']},null,2));
+  await browser?.close();await service?.close();
 }

@@ -3,6 +3,10 @@
 # Needs Linux, Node, coturn, npm ci and a Playwright-compatible Chromium.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [ "$#" -gt 1 ] || { [ "$#" -eq 1 ] && [ "$1" != '--external' ]; }; then
+  printf 'Usage: bash test/turn-relay.sh [--external]\n' >&2
+  exit 2
+fi
 TURN_EXECUTABLE="${TURN_BIN:-turnserver}"
 command -v "$TURN_EXECUTABLE" >/dev/null
 export TEST_TURN_URLS='turn:127.0.0.1:34789?transport=udp'
@@ -22,4 +26,8 @@ relay_pid=$!
 trap 'kill "$relay_pid" 2>/dev/null || true; wait "$relay_pid" 2>/dev/null || true' EXIT
 sleep 1
 kill -0 "$relay_pid"
-node test/rtc.mjs
+if [ "${1:-}" = '--external' ]; then
+  node test/remote-loopback.mjs
+else
+  node test/rtc.mjs
+fi

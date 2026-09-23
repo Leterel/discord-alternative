@@ -1,9 +1,17 @@
 const { app, BrowserWindow, session, desktopCapturer, ipcMain } = require('electron');
 const path = require('node:path');
 const { installCaptureHandler } = require('./capture.cjs');
+const diagnosticMode = process.argv.includes('--diagnose-linux');
+if (diagnosticMode) {
+  require('./linux-diagnostics.cjs').diagnoseLinux().then(report => {
+    console.log(JSON.stringify(report, null, 2));
+    app.exit(report.status === 'prerequisites-present' ? 0 : 2);
+  }).catch(() => { console.error('Linux-Diagnose fehlgeschlagen.'); app.exit(2); });
+}
 if (process.platform === 'linux') app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
 let main;
 app.whenReady().then(() => {
+  if (diagnosticMode) return;
   session.defaultSession.setPermissionRequestHandler((wc, permission, callback) => callback(wc === main?.webContents && ['media','display-capture'].includes(permission)));
   session.defaultSession.setPermissionCheckHandler((wc, permission) => wc === main?.webContents && ['media','display-capture'].includes(permission));
   main = new BrowserWindow({width:1280,height:850,minWidth:840,minHeight:660,backgroundColor:'#101216',title:'SofaFunk',autoHideMenuBar:true,webPreferences:{preload:path.join(__dirname,'preload.cjs'),contextIsolation:true,nodeIntegration:false,sandbox:true}});

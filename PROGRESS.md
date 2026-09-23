@@ -2,6 +2,14 @@
 
 ## Umgesetzt
 
+- Version 0.1.1: mehrere Quellen in Wayland-Umgebungen brauchen eine bewusste
+  Auswahl. Timeout/Fehler der Freigabe schliesst den App-Auswahldialog.
+- Schreibgeschuetzte Linux-Diagnose im Paket (`--diagnose-linux`) sowie
+  Anleitung fuer CachyOS/Wayland in `LINUX-SCREENSHARING.md`.
+- `deploy/check-server.mjs` prueft einen angegebenen Server auf HTTPS/WSS,
+  Anmeldung, Signalisierung in beide Richtungen und temporaere TURN-Credentials.
+  `SERVER-CHECK.md` beschreibt den anschliessenden erzwungenen RTC-Relay-Test.
+
 - Electron-App: Textchat, Audio, Video und parallele Bildschirmfreigabe.
 - Echter WebRTC-Verbindungsaufbau, serialisierte SDP/ICE-Verarbeitung und
   abgesicherte Callbacks nach Verlassen/Wiederbetreten.
@@ -14,6 +22,19 @@
 - Windows-NSIS-Installer sowie Linux-AppImage und tar.gz gebaut.
 
 ## Nachgewiesen
+
+- 0.1.1: 27/27 Tests auf Windows und Ubuntu/WSL. Neue Faelle decken mehrere
+  Wayland-Quellen, Portalabbruch, verspätete Antworten, Diagnose und
+  Server-Erreichbarkeit/-Fehler ab.
+- Echter App-Dialog mit zwei WebRTC-Teilnehmern: Timeout, erneuter Versuch,
+  Abbrechen und Verlassen des Kollegen bestanden, ohne Desktopaufnahme.
+- Der externe Clientmodus wurde gegen einen getrennten lokalen Server und
+  echten coturn getestet: Servercheck erfolgreich; beide ICE-Paare relay/relay,
+  Chat, Audio, Kamera, Screen, Stop und Wiederbeitritt bestanden. Das ist kein
+  Test von oeffentlichem TLS oder von zwei verschiedenen Heimnetzen.
+- Diagnose der gebauten Linux-App meldet korrekt `needs-attention`: WSL hat
+  Wayland, aber hier fehlen PipeWire-Socket und ScreenCast-Portal. Keine Dienste
+  installiert oder Systemeinstellungen geaendert.
 
 - Windows: echtes Electron-Fenster, Preload-Brücke und ausgeschaltete
   Node-Integration im Renderer geprüft.

@@ -40,8 +40,10 @@ function installCaptureHandler({session, ipcMain, desktopCapturer, window, wayla
       if (current.finished) return;
       if (contents.isDestroyed() || !current.sources.length) return current.finish({});
       // PipeWire has already asked the user to select a source through the
-      // desktop portal. Electron returns only that selected source.
-      if (wayland) return current.finish({video:current.sources[0]});
+      // desktop portal. It returns exactly one selected source. A Wayland
+      // environment variable alone does not prove a portal was used: XWayland
+      // or an explicit Ozone override can return a normal list instead.
+      if (wayland && current.sources.length === 1) return current.finish({video:current.sources[0]});
       contents.send('screen-options', {
         requestId:current.id,
         sources:current.sources.map(source => ({id:source.id, name:source.name, thumbnail:source.thumbnail.toDataURL()}))

@@ -5,21 +5,21 @@ Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 
 ## Installieren und starten
 
-[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.0)
+[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.1)
 (privates Repository; GitHub-Anmeldung erforderlich).
 
 **Windows:** den SofaFunk-Installer (`.exe`) ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
 Codesigning-Zertifikat.
 
-**Linux:** `SofaFunk-0.1.0.AppImage` ausführbar machen und starten:
+**Linux:** `SofaFunk-0.1.1.AppImage` ausführbar machen und starten:
 
 ```bash
-chmod +x SofaFunk-0.1.0.AppImage
-./SofaFunk-0.1.0.AppImage
+chmod +x SofaFunk-0.1.1.AppImage
+./SofaFunk-0.1.1.AppImage
 ```
 
-Alternativ `sofa-funk-0.1.0.tar.gz` in einen eigenen Ordner entpacken und darin
+Alternativ `sofa-funk-0.1.1.tar.gz` in einen eigenen Ordner entpacken und darin
 `./sofa-funk` starten. Beide Linux-Pakete wurden unter Ubuntu 24.04 in WSL
 gebaut. Das Fenster der gebauten Linux-Binary wurde dort geöffnet und geprüft.
 Ein vollständiger Test auf CachyOS/Wayland steht aus.
@@ -35,6 +35,8 @@ Es ist kein öffentlicher SofaFunk-Dienst eingerichtet. Ihr benötigt einen
 Signalisierungsserver und für zuverlässige Verbindungen zwischen Heimnetzen
 einen TURN-Relay. Der vorbereitete Docker-Stack kombiniert Node.js, Caddy/TLS
 und coturn. Einrichtung, DNS, Ports und Betrieb: [SERVER.md](SERVER.md).
+Einen vorhandenen Server von beiden Rechnern aus pruefen:
+[SERVER-CHECK.md](SERVER-CHECK.md). Der Check startet keinen oeffentlichen Dienst.
 
 Der Signalisierungsserver vermittelt den Verbindungsaufbau; Chat und Medien
 laufen über WebRTC, direkt oder über TURN. Der Server speichert keine
@@ -64,6 +66,7 @@ npm test
 npm run test:desktop
 $env:TEST_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 npm run test:e2e
+npm run test:picker
 npm run dist:win -- --publish never
 ```
 
@@ -89,6 +92,21 @@ Relay-Test auf Linux mit vorhandenem coturn und Chromium:
 Testschlüssel und beendet coturn anschließend. Optional `TURN_BIN` und
 `TEST_CHROME` auf vorhandene Binaries setzen. Die Belege landen in
 `test-results/turn/`; direkte Verbindungen können diesen Test nicht bestehen.
+`bash test/turn-relay.sh --external` prueft zusaetzlich den Server-Checker und
+den externen Clientmodus gegen einen getrennten lokalen Server. Auch dieser
+Test belegt keine oeffentliche TLS-Verbindung oder zwei Heimnetze.
+
+## Neu in 0.1.1
+
+- Bei mehreren Bildschirmquellen unter Wayland ist eine ausdrueckliche
+  Auswahl noetig; die erste Quelle wird nicht automatisch freigegeben.
+- Abgebrochene oder abgelaufene Freigaben schliessen den Auswahldialog,
+  damit erneutes Teilen und Verlassen funktionieren.
+- `./SofaFunk-0.1.1.AppImage --diagnose-linux` prueft Linux-Voraussetzungen
+  ohne Aufnahme oder Systemaenderungen. Einzelheiten und ein kurzer
+  Funktionstest: [LINUX-SCREENSHARING.md](LINUX-SCREENSHARING.md).
+- Neue Serverpruefung fuer Health, Anmeldung, Signalisierung und
+  TURN-Konfiguration; optionaler Medientest mit erzwungenem Relay.
 
 ## Grenzen
 

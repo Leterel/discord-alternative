@@ -1,5 +1,5 @@
 {
-  "name": "sofa-funk", "productName": "SofaFunk", "version": "0.1.0",
+  "name": "sofa-funk", "productName": "SofaFunk", "version": "0.1.1",
   "description": "Ein privater Platz fuer zwei: Chat, Audio, Video und Screensharing.",
   "author": "Leterel", "license": "MIT", "private": true,
   "engines": { "node": ">=22.12.0" },
@@ -8,6 +8,9 @@
     "start": "electron .", "server": "node server/cli.mjs",
     "test": "node --test test/*.test.mjs", "test:e2e": "node test/rtc.mjs",
     "test:desktop": "node test/desktop-smoke.mjs",
+    "test:picker": "node test/picker-ui.mjs",
+    "check:server": "node deploy/check-server.mjs",
+    "check:linux": "node desktop/linux-diagnostics.cjs",
     "dist:win": "electron-builder --win nsis --x64",
     "pack:win-portable": "electron-builder --win zip --x64",
     "dist:linux": "electron-builder --linux AppImage tar.gz --x64"

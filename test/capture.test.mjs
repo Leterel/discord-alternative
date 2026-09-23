@@ -51,3 +51,24 @@ test('source failure and picker timeout both reject capture',async()=> {
   const slow=fixture({timeoutMs:10}); await slow.start();
   await new Promise(done=>setTimeout(done,30)); assert.deepEqual(slow.answers,[{}]); slow.window.emit('closed');
 });
+
+test('Wayland environment with multiple sources still requires an explicit choice',async()=> {
+  const other={...source,id:'window:2',name:'Second window'};
+  const f=fixture({wayland:true,getSources:async()=>[source,other]}); await f.start();
+  assert.equal(f.answers.length,0); assert.equal(f.messages[0][1].sources.length,2);
+  f.choose(other.id); assert.deepEqual(f.answers,[{video:other}]); f.window.emit('closed');
+});
+
+test('a cancelled native portal returning no source never grants a screen',async()=> {
+  const f=fixture({wayland:true,getSources:async()=>[]}); await f.start();
+  assert.deepEqual(f.answers,[{}]); assert.equal(f.messages.length,0); f.window.emit('closed');
+});
+
+test('a late portal response after timeout cannot grant capture or disturb a new choice',async()=> {
+  let resolve, calls=0;
+  const f=fixture({wayland:true,timeoutMs:10,getSources:()=>++calls===1 ? new Promise(done=>resolve=done) : Promise.resolve([source])});
+  const late=f.start(); await new Promise(done=>setTimeout(done,30));
+  assert.deepEqual(f.answers,[{}]);
+  await f.start(); resolve([source]); await late;
+  assert.deepEqual(f.answers,[{},{video:source}]); assert.equal(f.messages.length,0); f.window.emit('closed');
+});
