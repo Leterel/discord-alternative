@@ -65,6 +65,50 @@ test('wrong secret is rejected without disclosing room state', async () => {
   const close = await new Promise(resolve => ws.once('close', (code, reason) => resolve({code,reason:reason.toString()})));
   assert.equal(close.code, 4003); assert.match(close.reason, /Falscher/);
 });
+
+test('authenticated resume replaces only its stale seat before the old socket closes', async () => {
+  const old = await client(), friend = await client(), replacement = await client();
+  try {
+    const original = await join(old, 'Original', 'resume');
+    const colleague = await join(friend, 'Friend', 'resume');
+    assert.match(original.resumeToken, /^[A-Za-z0-9_-]{43}$/);
+    assert.notEqual(colleague.resumeToken, original.resumeToken);
+    assert(!JSON.stringify(colleague.peers).includes(original.resumeToken));
+    const oldClosed = once(old, 'close');
+    const friendEvents = [];
+    friend.on('message', raw => friendEvents.push(JSON.parse(raw)));
+    const renewed = next(replacement, message => message.type === 'joined');
+    // Deliberately leave the old socket OPEN; do not rely on client close timing.
+    replacement.send(JSON.stringify({type:'join',name:'Original',room:'resume',secret:SECRET,resumeToken:original.resumeToken}));
+    const result = await renewed; await oldClosed;
+    assert.notEqual(result.id, original.id);
+    assert.equal(result.resumeToken, original.resumeToken);
+    const delivered = next(friend, message => message.type === 'signal');
+    replacement.send(JSON.stringify({type:'signal',data:{afterResume:true}}));
+    assert.equal((await delivered).from,result.id);
+    assert.deepEqual(friendEvents.filter(message => ['peer-left','peer-joined'].includes(message.type)).map(message => [message.type,message.id]),
+      [['peer-left',original.id],['peer-joined',result.id]]);
+    assert.equal(service.rooms.get('resume').size,2);
+    assert.deepEqual([...service.rooms.get('resume')].map(member => member.id).sort(),[colleague.id,result.id].sort());
+  } finally { await disconnect(old,friend,replacement); }
+});
+
+test('resume tokens cannot bypass authentication, evict by name or replace another room', async () => {
+  const one=await client(), two=await client(), elsewhere=await client();
+  try {
+    const original=await join(one,'Same name','protected');
+    await join(two,'Friend','protected');
+    const other=await join(elsewhere,'Elsewhere','other-resume');
+    for (const [secret,token,code] of [[SECRET,'x'.repeat(43),4004],[SECRET,other.resumeToken,4004],['wrong-secret-123',original.resumeToken,4003]]) {
+      const intruder=await client();
+      const closed=once(intruder,'close');
+      intruder.send(JSON.stringify({type:'join',name:'Same name',room:'protected',secret,resumeToken:token}));
+      assert.equal((await closed)[0],code);
+      assert.equal(service.rooms.get('protected').size,2);
+      assert.equal(one.readyState,WebSocket.OPEN);
+    }
+  } finally {await disconnect(one,two,elsewhere);}
+});
 test('malformed joins are rejected', async () => {
   const ws = await client(); ws.send(JSON.stringify({type:'join',name:'',room:'bad room',secret:SECRET}));
   const close = await new Promise(resolve => ws.once('close', (code, reason) => resolve({code,reason:reason.toString()})));

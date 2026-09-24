@@ -1,5 +1,8 @@
+import { describeConnection, serverCloseMessage } from './connection.mjs';
 const $ = id => document.getElementById(id);
 let socket, peer, selfId, iceServers = [];
+let joinDeadline;
+let resumeSession;
 let micStream, cameraStream, screenStream, remoteState = {}, remoteCamera, remoteScreen;
 const remoteAudio = document.createElement('audio'); remoteAudio.autoplay = true; document.body.append(remoteAudio);
 const note = text => { $('notice').textContent = text; };
@@ -25,6 +28,25 @@ function controls(connected) {
   for (const id of ['mic','camera','screen']) $(id).disabled = !connected && !streamFor(id);
   for (const id of ['message','send']) $(id).disabled = !connected;
   $('leave').disabled = !socket;
+  $('reconnect').disabled = !selfId;
+}
+function cancelJoinDeadline() { clearTimeout(joinDeadline); joinDeadline = undefined; }
+function waitForServer(current, message) {
+  cancelJoinDeadline();
+  joinDeadline = setTimeout(() => { if (socket === current) disconnect(message, true); }, 12000);
+}
+async function updateConnection(current) {
+  if (!alive(current) || current.pc.connectionState !== 'connected' || current.readingStats) return;
+  current.readingStats = true;
+  try {
+    const description = describeConnection(await current.pc.getStats());
+    // A response can arrive after leaving, reconnecting or losing the network.
+    if (!alive(current) || current.pc.connectionState !== 'connected') return;
+    $('connection').textContent = description.label;
+    $('connection').dataset.route = description.kind;
+    $('route-hint').textContent = description.hint;
+  } catch { /* Missing stats must not end a working conversation. */ }
+  finally { current.readingStats = false; }
 }
 function updateMedia() {
   $('mic').textContent = micStream ? '♩  Mikro aus' : '♩  Mikro an';
@@ -105,13 +127,21 @@ function createPeer(id, name, initiate) {
   pc.ondatachannel=event=>bindChannel(current,event.channel);
   pc.onconnectionstatechange=()=>{
     if (!alive(current)) return;
-    const status={new:'Verbindung wird vorbereitet',connecting:'Verbindet …',connected:'● Direktverbindung aktiv',disconnected:'Verbindung unterbrochen',failed:'Verbindung fehlgeschlagen',closed:'Verbindung beendet'};
+    const status={new:'Verbindung wird vorbereitet',connecting:'Verbindet …',connected:'● Verbindung aktiv',disconnected:'Verbindung unterbrochen',failed:'Verbindung fehlgeschlagen',closed:'Verbindung beendet'};
     $('connection').textContent=status[pc.connectionState]||pc.connectionState;
-    if(pc.connectionState==='connected') controls(current.channel?.readyState==='open');
-    if(['failed','disconnected'].includes(pc.connectionState)) {
-      controls(false); note('Verbindung unterbrochen. Bei verschiedenen Heimnetzen braucht ihr eventuell TURN. Bei anhaltendem Fehler verlassen und neu verbinden.');
+    delete $('connection').dataset.route;
+    if(pc.connectionState==='connected') {
+      const chatting=current.channel?.readyState==='open'; controls(chatting);
+      if(chatting){$('badge').textContent='● Zusammen online';$('badge').classList.add('online');}
+      updateConnection(current);
+    }
+    if(['failed','disconnected','closed'].includes(pc.connectionState)) {
+      controls(false); $('badge').textContent='● Verbindung unterbrochen'; $('badge').classList.remove('online');
+      $('route-hint').textContent='Ihr könnt die Verbindung neu aufbauen. Mikro, Kamera und Freigabe werden dabei gestoppt.';
+      note('Verbindung unterbrochen. Versucht „Neu verbinden“. Zwischen manchen Heimnetzen wird ein Vermittlungsserver (TURN) benötigt.');
     }
   };
+  current.statsTimer = setInterval(() => updateConnection(current), 2000);
   // Only the existing room member creates the initial media sections. The other
   // member uses the transceivers created by the offer, avoiding duplicate tracks.
   if (initiate) {
@@ -160,6 +190,7 @@ function closePeer() {
   for (const stream of [micStream,cameraStream,screenStream]) stopStream(stream);
   micStream=cameraStream=screenStream=null;
   if (old) {
+    clearInterval(old.statsTimer);
     old.pc.onconnectionstatechange=old.pc.onnegotiationneeded=old.pc.onicecandidate=old.pc.ontrack=old.pc.ondatachannel=null;
     if(old.channel){old.channel.onopen=old.channel.onclose=old.channel.onmessage=old.channel.onerror=null;old.channel.close();}
     old.pc.close();
@@ -167,13 +198,19 @@ function closePeer() {
   if ($('screens').open) $('screens').close();
   window.desktop?.cancelScreen();
   remoteCamera=remoteScreen=null;remoteState={};remoteAudio.srcObject=null;
+  delete $('connection').dataset.route;
+  $('route-hint').textContent='Sobald ihr verbunden seid, steht hier, ob eure Daten direkt oder über einen Vermittlungsserver laufen.';
   controls(false);updateMedia();renderRemote();
 }
-function disconnect(message='Du hast das Sofa verlassen.') {
+function disconnect(message='Du hast das Sofa verlassen.', retainSession=false) {
+  cancelJoinDeadline();
+  if(!retainSession)resumeSession=undefined;
   const old=socket;socket=null;
   if(old){old.onopen=old.onmessage=old.onerror=old.onclose=null;old.close();}
   closePeer();selfId=null;iceServers=[];$('setup').hidden=false;$('join').disabled=false;$('leave').disabled=true;
   $('badge').textContent='● Offline';$('badge').classList.remove('online');$('connection').textContent='Nicht verbunden';
+  $('reconnect').disabled=true;
+  $('relay-hint').textContent='Ob euer Server einen Vermittler bereitstellt, wird nach der Anmeldung angezeigt.';
   $('peer-name').textContent='Warte auf Gesellschaft';$('remote-label').textContent='Dein Kollege';$('remote-title').textContent='Noch ein Platz frei.';
   $('remote-description').textContent='Gemeinsam ist sogar Nichtstun besser.';note(message);
 }
@@ -184,17 +221,32 @@ $('join-form').addEventListener('submit',event=>{
   if(url.username || url.password) return note('Die Serveradresse darf keine Zugangsdaten enthalten. Nutze das Raumschlüssel-Feld.');
   if(url.protocol==='ws:'&&!['localhost','127.0.0.1','[::1]'].includes(url.hostname))return note('Für entfernte Server bitte wss:// mit gültigem TLS-Zertifikat verwenden.');
   $('join').disabled=true;note('Sofa wird aufgeschlossen …');
+  const room=$('room').value;
+  const resumeToken=resumeSession?.endpoint===url.href && resumeSession.room===room ? resumeSession.token : undefined;
   let current;
   try { current=socket=new WebSocket(url.href); }
   catch(error) { $('join').disabled=false; return note('Serveradresse nicht verwendbar: '+error.message); }
   $('leave').disabled=false;
-  current.onopen=()=>{if(socket===current)current.send(JSON.stringify({type:'join',name:$('name').value.trim(),room:$('room').value,secret:$('secret').value}));};
+  waitForServer(current, 'Der Server antwortet nicht. Prüfe seine Adresse und ob er läuft. Du kannst es jetzt erneut versuchen.');
+  current.onopen=()=>{
+    if(socket!==current)return;
+    waitForServer(current, 'Der Server bestätigt die Anmeldung nicht. Prüfe, ob dort SofaFunk läuft, und versuche es erneut.');
+    current.send(JSON.stringify({type:'join',name:$('name').value.trim(),room,secret:$('secret').value,resumeToken}));
+  };
   current.onmessage=event=>{
     if (socket!==current) return;
     let msg;try{msg=JSON.parse(event.data);}catch{return;}
     if(!msg || typeof msg!=='object')return;
     if(msg.type==='joined'){
+      cancelJoinDeadline();
       selfId=msg.id;iceServers=Array.isArray(msg.iceServers)?msg.iceServers:[];$('setup').hidden=true;$('leave').disabled=false;
+      // Kept only in this window's memory, bound to the selected server and room.
+      resumeSession=typeof msg.resumeToken==='string' && /^[A-Za-z0-9_-]{43}$/.test(msg.resumeToken)
+        ? {endpoint:url.href,room,token:msg.resumeToken} : undefined;
+      $('reconnect').disabled=false;
+      $('relay-hint').textContent=msg.hasTurn
+        ? 'Euer Server bietet TURN an: Ein Vermittler kann helfen, wenn eine direkte Verbindung nicht klappt.'
+        : 'Euer Server bietet keinen TURN-Vermittler an. Manche Kombinationen aus Heimnetzen können sich deshalb nicht verbinden.';
       $('badge').textContent='● Im Raum';$('badge').classList.add('online');
       note(msg.hasTurn?'Warte auf deinen Kollegen. TURN ist verfügbar.':'Warte auf deinen Kollegen. Ohne TURN funktionieren manche Heimnetz-Kombinationen nicht.');
       if(msg.peers?.[0])createPeer(msg.peers[0].id,msg.peers[0].name,false);
@@ -208,9 +260,14 @@ $('join-form').addEventListener('submit',event=>{
     if(msg.type==='peer-left' && peer?.id===msg.id){closePeer();$('peer-name').textContent='Warte auf Gesellschaft';$('badge').textContent='● Im Raum';$('connection').textContent='Kollege hat verlassen';note('Dein Kollege ist gegangen. Mikro, Kamera und Teilen wurden gestoppt.');}
   };
   current.onerror=()=>{if(socket===current)note('Server nicht erreichbar. Adresse und Serverstart prüfen.');};
-  current.onclose=event=>{if(socket===current)disconnect(event.reason||'Verbindung zum Server beendet. Bitte erneut verbinden.');};
+  current.onclose=event=>{if(socket===current)disconnect(serverCloseMessage(event.code),true);};
 });
 $('leave').onclick=()=>disconnect();
+$('reconnect').onclick=()=>{
+  if(!selfId)return;
+  disconnect('Verbindung wird neu aufgebaut. Mikro und Kamera bleiben aus, bis du sie wieder einschaltest.',true);
+  $('join-form').requestSubmit();
+};
 $('chat-form').addEventListener('submit',event=>{
   event.preventDefault();const text=$('message').value.trim();if(!text||text.length>4000)return;
   if (!channelSend({type:'chat',text})) return note('Nachricht konnte nicht gesendet werden. Bitte gleich erneut versuchen.');

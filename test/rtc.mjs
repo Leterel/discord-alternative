@@ -59,6 +59,8 @@ try {
   const {page:a}=await actor('Mois');const {page:b}=await actor('Kollege');
   await a.screenshot({path:path.join(outputDirectory,'offline.png'),fullPage:true});
   await Promise.all([a.locator('#join').click(),b.locator('#join').click()]);await connected(a,b);results.push('Two independent browser contexts connected through actual WebSocket signaling + WebRTC');
+  for (const page of [a,b]) await page.waitForFunction(kind=>document.getElementById('connection').dataset.route===kind,relayTest?'relay':'direct');
+  results.push(relayTest?'App correctly identifies actual selected TURN route':'App correctly identifies actual selected direct route');
   await a.locator('#message').fill('ey <script>safe</script>');await a.locator('#send').click();
   await b.locator('#messages').getByText('ey <script>safe</script>',{exact:true}).waitFor();
   await b.locator('#message').fill('läuft, Mois.');await b.locator('#send').click();await a.locator('#messages').getByText('läuft, Mois.',{exact:true}).waitFor();results.push('Bidirectional data-channel chat; HTML displayed as text');
@@ -97,6 +99,15 @@ try {
   await b.waitForFunction(()=>window.testStreams.every(s=>s.getTracks().every(t=>t.readyState==='ended')));results.push('Leaving stops own media and tears down peer');
   await b.locator('#join').click();await connected(a,b);
   await a.locator('#message').fill('Wieder da');await a.locator('#send').click();await b.locator('#messages').getByText('Wieder da',{exact:true}).waitFor();results.push('Rejoin establishes new functioning data channel');
+  await a.locator('#mic').click(); await a.locator('#camera').click(); await a.locator('#screen').click();
+  const previousPeers=await a.evaluate(()=>window.testPeers.length);
+  await a.locator('#reconnect').click();
+  await a.waitForFunction(count=>window.testPeers.length>count,previousPeers); await connected(a,b);
+  assert.equal(await a.evaluate(()=>window.testStreams.every(stream=>stream.getTracks().every(track=>track.readyState==='ended'))),true);
+  for (const kind of ['mic','camera','screen']) assert.equal(await a.locator('#'+kind).getAttribute('aria-pressed'),'false');
+  await a.locator('#message').fill('Neue Verbindung funktioniert');await a.locator('#send').click();
+  await b.locator('#messages').getByText('Neue Verbindung funktioniert',{exact:true}).waitFor();
+  results.push('Reconnect establishes fresh WebRTC, stops all capture and requires explicit media restart');
   assert.deepEqual(errors,[]);passed=true;console.log(results.join('\n'));
 } finally {
   await writeFile(path.join(outputDirectory,'rtc-results.json'),JSON.stringify({passed,results,errors,testedAt:new Date().toISOString(),externalServer:Boolean(remoteEndpoint),limitations:['Synthetic capture sources; not physical devices',remoteEndpoint?'Separate server and TURN path from this computer; both peers still use the same client network':relayTest?'Real coturn relay; local test does not verify two home NATs or public TURN':'Loopback network; not two home NATs','Chromium engine; native screen picker and CachyOS Wayland need device checks']},null,2));

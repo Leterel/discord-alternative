@@ -1,4 +1,31 @@
-# Fortschritt — 2026-09-23
+# Fortschritt — 2026-09-24
+
+## 0.1.2 — Verbindungsstatus und Wiederverbindung
+
+- Ausgewähltes ICE-Kandidatenpaar wird ausgewertet: direkte Verbindung oder
+  TURN-Vermittler, zusätzlich gemessene Laufzeit, sofern verfügbar. Keine IPs
+  oder Zugangsdaten in dieser Anzeige.
+- Serveraufbau und Anmeldebestätigung warten jeweils höchstens zwölf Sekunden.
+  Fehlversuche geben den Startknopf wieder frei; Verlassen löscht alte Timer.
+- Neuverbinden stoppt lokale Medien sofort. Ein zufälliges, raumgebundenes
+  Sitzungstoken ersetzt nur den eigenen alten Socket, auch wenn dieser noch
+  offen ist. Der Raumschlüssel bleibt Pflicht, der zweite Platz bleibt erhalten.
+  Das Token bleibt nur im Fensterspeicher und wird beim Verlassen vergessen.
+- 35/35 Unit-Tests auf Windows und Ubuntu/WSL. Echte Socket-Tests schließen
+  falsche Token, fremde Räume und fehlende Authentifizierung aus.
+- Browser-UI: echte Handshake-/Anmelde-Stillstände, Fehler und erneuter Versuch
+  bestanden; nur die Wartezeit wird im Test künstlich beschleunigt.
+- Direkter WebRTC-Test sowie zwei coturn-Läufe (normal und externer Clientmodus)
+  bestanden. Anzeige stimmt mit tatsächlichem ICE-Weg überein; Neuverbinden
+  liefert wieder Chat, alle vorherigen Capture-Tracks sind beendet.
+- Zwei gebaute Desktop-Instanzen jeweils auf Windows und Linux/Ubuntu-WSL:
+  echter Chat in beide Richtungen und Neuverbinden bestanden. Dabei keine
+  Aufnahme und keine künstliche Browser-Berechtigungsfreigabe.
+- Windows-Installer, Linux-AppImage und tar.gz 0.1.2 gebaut. Weiterhin unsigned;
+  kompletter Installerlauf, CachyOS/Wayland und zwei Heimnetze bleiben offen.
+- Ausführlicher Nachweis und Grenzen: VERIFICATION-0.1.2.md.
+
+Die folgenden Abschnitte dokumentieren den vorherigen Stand 0.1.1.
 
 ## Umgesetzt
 

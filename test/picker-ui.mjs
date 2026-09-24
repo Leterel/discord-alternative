@@ -7,10 +7,22 @@ const service=createSignalServer({secret:'picker-regression-local-secret'});
 await new Promise(resolve=>service.server.listen(0,'127.0.0.1',resolve));
 const port=service.server.address().port;
 const errors=[];
-let browser;
+const pages=[];
+let browser,passed=false;
 async function actor(name){
-  const context=await browser.newContext();
+  // Match the RTC suite's synthetic-media environment so Chromium may expose
+  // loopback candidates; no physical device is opened by this dialog test.
+  const context=await browser.newContext({permissions:['camera','microphone']});
   await context.addInitScript(()=>{
+    window.testSignals=[];
+    const OriginalSocket=window.WebSocket;
+    window.WebSocket=class extends OriginalSocket {
+      constructor(...args){super(...args);this.addEventListener('message',event=>{
+        const data=JSON.parse(event.data);
+        window.testSignals.push({direction:'in',type:data.type,peers:data.peers?.length});
+      });}
+      send(raw){const data=JSON.parse(raw);window.testSignals.push({direction:'out',type:data.type,room:data.room});super.send(raw);}
+    };
     let show, rejectCapture;
     window.desktop={
       onScreens:handler=>{show=handler;},
@@ -24,13 +36,14 @@ async function actor(name){
     window.rejectTestCapture=()=>rejectCapture(new DOMException('Picker timeout','NotAllowedError'));
   });
   const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));
+  pages.push(page);
   await page.goto(`http://127.0.0.1:${port}`);
   await page.locator('#server').fill(`ws://127.0.0.1:${port}`);
   await page.locator('#name').fill(name);await page.locator('#secret').fill('picker-regression-local-secret');
   await page.locator('#join').click();return page;
 }
 try{
-  browser=await chromium.launch({headless:true,executablePath:process.env.TEST_CHROME||undefined});
+  browser=await chromium.launch({headless:true,executablePath:process.env.TEST_CHROME||undefined,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream']});
   const a=await actor('Picker test A'), b=await actor('Picker test B');
   await Promise.all([a,b].map(page=>page.waitForFunction(()=>document.getElementById('badge').textContent.includes('Zusammen'))));
   await a.locator('#screen').click();await a.locator('#screens').waitFor({state:'visible'});
@@ -48,5 +61,9 @@ try{
   await a.waitForFunction(()=>document.getElementById('peer-name').textContent==='Warte auf Gesellschaft');
   assert.equal(await a.locator('#screen').isEnabled(),false);
   assert.deepEqual(errors,[]);
+  passed=true;
   console.log('Picker UI: timeout dismisses dialog; retry/cancel works; peer leave cancels and dismisses; no media captured.');
-} finally {await browser?.close();await service.close();}
+} finally {
+  if(!passed) console.error(JSON.stringify({errors,rooms:[...service.rooms].map(([room,members])=>({room,names:[...members].map(member=>member.name)})),pages:await Promise.all(pages.map(page=>page.evaluate(()=>({badge:document.getElementById('badge')?.textContent,notice:document.getElementById('notice')?.textContent,connection:document.getElementById('connection')?.textContent,signals:window.testSignals})).catch(()=>({closed:true}))))}));
+  await browser?.close();await service.close();
+}

@@ -6,7 +6,7 @@ Im Terminal **der normalen grafischen Sitzung**, als derselbe Benutzer wie
 SofaFunk, starten (nicht mit sudo und nicht ueber eine SSH-Sitzung):
 
 ```sh
-./SofaFunk-0.1.1.AppImage --diagnose-linux
+./SofaFunk-0.1.2.AppImage --diagnose-linux
 # Alternativ mit dem entpackten Linux-Paket:
 ./sofa-funk --diagnose-linux
 # Aus dem Quellcode; Node >= 22.12 erforderlich:

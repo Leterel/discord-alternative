@@ -5,21 +5,21 @@ Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 
 ## Installieren und starten
 
-[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.1)
+[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.2)
 (privates Repository; GitHub-Anmeldung erforderlich).
 
 **Windows:** den SofaFunk-Installer (`.exe`) ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
 Codesigning-Zertifikat.
 
-**Linux:** `SofaFunk-0.1.1.AppImage` ausführbar machen und starten:
+**Linux:** `SofaFunk-0.1.2.AppImage` ausführbar machen und starten:
 
 ```bash
-chmod +x SofaFunk-0.1.1.AppImage
-./SofaFunk-0.1.1.AppImage
+chmod +x SofaFunk-0.1.2.AppImage
+./SofaFunk-0.1.2.AppImage
 ```
 
-Alternativ `sofa-funk-0.1.1.tar.gz` in einen eigenen Ordner entpacken und darin
+Alternativ `sofa-funk-0.1.2.tar.gz` in einen eigenen Ordner entpacken und darin
 `./sofa-funk` starten. Beide Linux-Pakete wurden unter Ubuntu 24.04 in WSL
 gebaut. Das Fenster der gebauten Linux-Binary wurde dort geöffnet und geprüft.
 Ein vollständiger Test auf CachyOS/Wayland steht aus.
@@ -67,6 +67,7 @@ npm run test:desktop
 $env:TEST_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 npm run test:e2e
 npm run test:picker
+npm run test:connection
 npm run dist:win -- --publish never
 ```
 
@@ -96,7 +97,30 @@ Testschlüssel und beendet coturn anschließend. Optional `TURN_BIN` und
 den externen Clientmodus gegen einen getrennten lokalen Server. Auch dieser
 Test belegt keine oeffentliche TLS-Verbindung oder zwei Heimnetze.
 
-## Neu in 0.1.1
+## Neu in 0.1.2
+
+- Die Verbindungsanzeige prüft den tatsächlich gewählten WebRTC-Weg: direkt
+  oder über einen TURN-Vermittlungsserver. Wenn verfügbar, zeigt sie die
+  gemessene Hin-und-zurück-Laufzeit in Millisekunden. IP-Adressen und
+  Zugangsdaten werden dafür nicht angezeigt oder protokolliert.
+- „Neu verbinden“ baut Raum-/Medienverbindungen neu auf. Aktive Aufnahmen
+  enden sofort; Mikrofon, Kamera und Bildschirm bleiben anschließend aus,
+  bis ihr sie ausdrücklich wieder startet.
+- Mit Server 0.1.2 kann dabei die eigene hängen gebliebene Sitzung ersetzt
+  werden, ohne den Platz des Kollegen zu belegen. Dafür verwendet die App ein
+  zufälliges Sitzungstoken nur im Arbeitsspeicher; der Raumschlüssel bleibt
+  erforderlich. Beim ausdrücklichen Verlassen wird das Token vergessen.
+- Serveraufbau und Anmeldung haben jeweils ein Zeitlimit von zwölf Sekunden.
+  Danach ist ein neuer Versuch möglich. Falscher Schlüssel und voller Raum
+  bekommen verständliche Meldungen.
+- „Wenn die Verbindung hakt“ erklärt den aktuellen Weg und ob euer Server
+  einen TURN-Vermittler anbietet. Ein angebotener TURN-Server allein ist noch
+  kein Beweis, dass er aus eurem Netz erreichbar ist.
+
+Für die verbesserte Wiederverbindung auch den selbst gehosteten Server auf
+0.1.2 aktualisieren. Alte Server bieten diesen Sitzungsaustausch noch nicht an.
+
+## Vorherige Verbesserungen in 0.1.1
 
 - Bei mehreren Bildschirmquellen unter Wayland ist eine ausdrueckliche
   Auswahl noetig; die erste Quelle wird nicht automatisch freigegeben.
