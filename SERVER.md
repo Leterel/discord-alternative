@@ -35,6 +35,34 @@ Kosten und Anbieterlimits vor dem Betrieb prüfen.
 
 ## Einmal einrichten
 
+### Gefuehrte Einrichtung (empfohlen)
+
+Mit Node.js 22.12+ im Repository auf dem Linux-Server:
+
+```bash
+node deploy/configure.mjs
+node deploy/configure.mjs --check
+cd deploy
+docker compose config --quiet
+docker compose up -d --build
+```
+
+Das Werkzeug fragt Domains, Zertifikats-E-Mail und Server-IPv4 ab. Zwei
+unterschiedliche Zufallsschluessel werden direkt in `deploy/.env` gespeichert;
+sie erscheinen nicht im Terminal. Auf Linux erhaelt die neue Datei Modus 600.
+Eine vorhandene Datei wird niemals ueberschrieben. `--check` liest sie nur.
+Die Datei verwendet einfache `KEY=VALUE`-Zeilen ohne Anfuehrungszeichen;
+der Raumschluessel braucht 32–128 Buchstaben/Ziffern/Unterstriche/Bindestriche.
+Zwei getrennte, automatisch erzeugte 64-stellige Hex-Schluessel erfuellen das.
+
+Beispieldomains/-IPs, private oeffentliche IPs, Steuerzeichen, doppelte Felder
+und unsichere Schluessel werden abgelehnt. Der Check bestaetigt nur die lokale
+Konfiguration, **keine** DNS-Aufloesung, Portfreigabe, TLS- oder TURN-Verbindung.
+Er startet keinen Dienst und bucht nichts. Auf Windows gilt die Ordner-ACL;
+fuer die Serverdatei daher das Werkzeug direkt unter Linux ausfuehren.
+
+### Manuelle Alternative
+
 Im geklonten Repository auf dem **Linux-Server**:
 
 ```bash

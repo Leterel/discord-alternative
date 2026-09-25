@@ -1,5 +1,20 @@
 # Fortschritt — 2026-09-24
 
+## Server-Einrichtung — 2026-09-25
+
+- Neues `deploy/configure.mjs`: gefuehrte lokale Vorbereitung und `--check`.
+  Erzeugt getrennte 256-Bit-Schluessel ohne Terminalausgabe, schreibt `.env`
+  exklusiv (kein Ueberschreiben) und unter Linux mit Dateimodus 600.
+- Prueft die Eingaben vor dem Schreiben: Domains, Kontaktadresse, IPv4,
+  Beispielwerte, Raumschluessel und TURN-Geheimnis. Fehlermeldungen geben
+  geheime Werte nicht wieder. Keine Netzwerk- oder Docker-Aufrufe.
+- Windows: 38 Tests bestanden; der Linux-Symlinktest wurde gezielt ausgelassen.
+- Ubuntu/WSL: alle vier neuen Konfigurationstests bestanden, einschliesslich
+  Modus 600 und abgelehntem Schreiben durch einen vorhandenen Symlink.
+- Ein oeffentlicher Server ist weiterhin nicht vorhanden. Lokale
+  Konfigurationspruefung ersetzt keinen Internet-/TURN-Test.
+- Die App-Binaries bleiben 0.1.2; diese Aenderung betrifft nur Serverwerkzeuge.
+
 ## 0.1.2 — Verbindungsstatus und Wiederverbindung
 
 - Ausgewähltes ICE-Kandidatenpaar wird ausgewertet: direkte Verbindung oder
