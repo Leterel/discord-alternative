@@ -1,5 +1,5 @@
 {
-  "name": "sofa-funk", "productName": "SofaFunk", "version": "0.1.2",
+  "name": "sofa-funk", "productName": "SofaFunk", "version": "0.1.3",
   "description": "Ein privater Platz fuer zwei: Chat, Audio, Video und Screensharing.",
   "author": "Leterel", "license": "MIT", "private": true,
   "engines": { "node": ">=22.12.0" },

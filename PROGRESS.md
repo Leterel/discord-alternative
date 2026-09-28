@@ -1,4 +1,44 @@
-# Fortschritt — 2026-09-24
+# Fortschritt — 2026-09-28
+
+## 0.1.3 — Ton freigeben und geprüfte Installationspakete
+
+- Windows-Start robuster gemacht: vor Electron-Initialisierung wird auf
+  Windows die GPU-Hardwarebeschleunigung samt GPU-Compositing-Schalter
+  deaktiviert. Damit umgeht die App den beobachteten Chromium-GPU-
+  Unterprozess-Abbruch (`0x80000003`); WebRTC läuft weiter über den
+  Softwarepfad. Der neue Installer-Build braucht noch einen abschließenden
+  Starttest.
+- Der neu gebaute Installer ist `C8A853ABC6F0CB3912415B33AA96401DE0B2670E6BE122C6460EC52A946DEBA9`.
+  Ein direkter Start der entpackten App blieb nach dem sicheren Neustart offen;
+  der vollständige Install-/Deinstallationslauf gehört noch zum vorherigen
+  Build und wird für diesen Hash nicht als bestanden behauptet.
+
+- Blockierte Tonwiedergabe zeigt einen eigenen, dauerhaften Knopf. Klick oder
+  Enter startet einen erneuten Versuch. Verlassen und ersetzte Verbindungen
+  entwerten verspätete Antworten; sie können den Hinweis nicht zurückbringen.
+- Audio-Regressionsprüfung mit echter lokaler WebRTC-Verbindung: zwei bewusst
+  injizierte Ablehnungen, Tastaturbedienung, native Wiedergabe mit fortlaufender
+  Medienzeit sowie verspätete Erfüllung/Ablehnung nach Verlassen bestanden.
+- Die RTP-Prüfung wartet jetzt ausdrücklich auf ausgewertete Stats. Direkter
+  Ablauf und beide echten coturn-Abläufe bestanden, mit empfangenen Audio-Bytes
+  und dekodierten Videobildern. Medien ausschließlich synthetisch und stumm.
+- Windows: 38 Unit-Tests bestanden, ein Linux-Symlinkfall ausgelassen.
+  Ubuntu/WSL: alle 39 bestanden.
+- Windows-Installer, Linux-AppImage und tar.gz 0.1.3 gebaut. Je zwei gebaute
+  Windows- und Linux-Clients bestehen echten Chat und Neuverbinden, ohne
+  Aufnahmegeräte oder künstliche Browser-Berechtigungsfreigaben.
+- Der neue Windows-Installer wurde tatsächlich installiert, die installierte
+  App-Version/ASAR/Renderer-Isolation geprüft und die Testinstallation wieder
+  deinstalliert. Bestehendes Benutzerprofil unverändert; keine Testverknüpfung
+  oder Installationsregistrierung blieb zurück. Signatur weiterhin nicht vorhanden.
+- Der erste Windows-Desktop-Test scheiterte im eingeschränkten Prozess am
+  GPU-Unterprozess. Derselbe unveränderte Test bestand mit normalen Prozessrechten.
+- Details: VERIFICATION-0.1.3.md und WINDOWS-INSTALLER-VERIFICATION.md.
+- Kein erreichbarer öffentlicher Server vorhanden. Zwei Heimnetze, öffentliche
+  TLS-/TURN-Erreichbarkeit, physische Medien und native CachyOS-/Wayland-Auswahl
+  bleiben ungetestet. WSL ist kein CachyOS-Nachweis.
+
+Die folgenden Einträge beschreiben frühere Zwischenstände.
 
 ## Server-Einrichtung — 2026-09-25
 

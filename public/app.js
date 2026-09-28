@@ -5,8 +5,22 @@ let joinDeadline;
 let resumeSession;
 let micStream, cameraStream, screenStream, remoteState = {}, remoteCamera, remoteScreen;
 const remoteAudio = document.createElement('audio'); remoteAudio.autoplay = true; document.body.append(remoteAudio);
+let audioAttempt = 0;
 const note = text => { $('notice').textContent = text; };
 const alive = current => peer === current && current?.pc.signalingState !== 'closed';
+async function playRemoteAudio(current) {
+  const stream = remoteAudio.srcObject;
+  if (!alive(current) || !stream) return;
+  const attempt = ++audioAttempt;
+  $('allow-audio').disabled = true;
+  let blocked = false;
+  // Call play synchronously in the click handler to retain browser activation.
+  try { await remoteAudio.play(); } catch { blocked = true; }
+  // A pending play promise can settle after leaving or replacing the peer.
+  if (!alive(current) || stream !== remoteAudio.srcObject || attempt !== audioAttempt) return;
+  $('audio-help').hidden = !blocked;
+  $('allow-audio').disabled = false;
+}
 const stopStream = stream => stream?.getTracks().forEach(track => { track.onended = null; track.stop(); });
 const streamFor = kind => ({mic:micStream,camera:cameraStream,screen:screenStream}[kind]);
 function setStream(kind, stream) {
@@ -115,7 +129,7 @@ function createPeer(id, name, initiate) {
     const stream=new MediaStream([event.track]);
     if(event.track.kind==='audio') {
       remoteAudio.srcObject=stream;
-      remoteAudio.play().catch(()=>{if(alive(current)) note('Bitte einmal in die App klicken, um Audio zu erlauben.');});
+      playRemoteAudio(current);
     } else {
       // Sender order is fixed by the initial offer: audio, camera, screen.
       const videos=pc.getTransceivers().filter(t=>t.receiver.track.kind==='video');
@@ -198,6 +212,7 @@ function closePeer() {
   if ($('screens').open) $('screens').close();
   window.desktop?.cancelScreen();
   remoteCamera=remoteScreen=null;remoteState={};remoteAudio.srcObject=null;
+  ++audioAttempt;$('audio-help').hidden=true;$('allow-audio').disabled=false;
   delete $('connection').dataset.route;
   $('route-hint').textContent='Sobald ihr verbunden seid, steht hier, ob eure Daten direkt oder über einen Vermittlungsserver laufen.';
   controls(false);updateMedia();renderRemote();
@@ -327,6 +342,9 @@ window.desktop?.onScreens(options=>{
   for(const source of options){const button=document.createElement('button');const image=document.createElement('img');image.src=source.thumbnail;image.alt='';const label=document.createElement('span');label.textContent=source.name;button.append(image,label);button.onclick=()=>{$('screens').close();window.desktop.chooseScreen(source.id);};$('screen-list').append(button);}
   if (!$('screens').open) $('screens').showModal();
 });
-window.addEventListener('pointerdown',()=>{if(remoteAudio.srcObject)remoteAudio.play().catch(()=>{});});
+$('allow-audio').onclick=()=>playRemoteAudio(peer);
+window.addEventListener('pointerdown',event=>{
+  if (!$('audio-help').hidden && !$('allow-audio').disabled && !event.target.closest('#allow-audio')) playRemoteAudio(peer);
+});
 window.addEventListener('beforeunload',()=>disconnect());
 controls(false);

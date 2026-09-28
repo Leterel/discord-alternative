@@ -219,14 +219,17 @@ echten CachyOS-Rechner getestet werden.
 
 ## Prüfstand dieses Rezepts
 
-Stand 2026-09-20: Compose-Konfiguration erneut lokal mit `config --quiet`
-statisch validiert; Shell-Startdatei mit `bash -n` syntaktisch geprüft. Die Docker-Engine
+Stand 2026-09-27: Compose-Konfiguration erneut lokal mit `config --quiet`
+statisch validiert. Die Shell-Startdatei wurde zuvor mit `bash -n` syntaktisch geprüft. Die Docker-Engine
 war hier nicht erreichbar. Es wurden **keine Container gestartet**, keine
 Zertifikate bezogen und kein öffentlicher TURN-/NAT-Test ausgeführt. Linux-
 Host-Networking, der Linux-Container-Build sowie CachyOS/Wayland benötigen
 deshalb noch einen praktischen Test auf den Zielsystemen.
 
-`node --test test/server.test.mjs` besteht acht Tests: HTTP/Anmeldung,
+Die vollständige Node-Testsuite besteht am 27.09. unter Ubuntu/WSL alle 39 Tests;
+unter Windows 38 mit einem ausdrücklich ausgelassenen Linux-Symlinktest.
+Darunter sind die sichere Konfigurationserzeugung, Dateimodus 600 unter Linux
+und zehn Server-Tests (`node --test test/server.test.mjs`): HTTP/Anmeldung,
 Zwei-Personen-Grenze, ungültige Anmeldungen, Raumtrennung und Aufräumen nach
 Trennung, HMAC/24-Stunden-Vertrag der TURN-Zugangsdaten, Konfigurationsfehler
 und vollständiges wiederholbares Herunterfahren. Diese Tests öffnen echte

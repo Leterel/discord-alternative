@@ -5,21 +5,21 @@ Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 
 ## Installieren und starten
 
-[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.2)
+[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3)
 (privates Repository; GitHub-Anmeldung erforderlich).
 
 **Windows:** den SofaFunk-Installer (`.exe`) ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
 Codesigning-Zertifikat.
 
-**Linux:** `SofaFunk-0.1.2.AppImage` ausführbar machen und starten:
+**Linux:** `SofaFunk-0.1.3.AppImage` ausführbar machen und starten:
 
 ```bash
-chmod +x SofaFunk-0.1.2.AppImage
-./SofaFunk-0.1.2.AppImage
+chmod +x SofaFunk-0.1.3.AppImage
+./SofaFunk-0.1.3.AppImage
 ```
 
-Alternativ `sofa-funk-0.1.2.tar.gz` in einen eigenen Ordner entpacken und darin
+Alternativ `sofa-funk-0.1.3.tar.gz` in einen eigenen Ordner entpacken und darin
 `./sofa-funk` starten. Beide Linux-Pakete wurden unter Ubuntu 24.04 in WSL
 gebaut. Das Fenster der gebauten Linux-Binary wurde dort geöffnet und geprüft.
 Ein vollständiger Test auf CachyOS/Wayland steht aus.
@@ -97,7 +97,27 @@ Testschlüssel und beendet coturn anschließend. Optional `TURN_BIN` und
 den externen Clientmodus gegen einen getrennten lokalen Server. Auch dieser
 Test belegt keine oeffentliche TLS-Verbindung oder zwei Heimnetze.
 
-## Neu in 0.1.2
+## Neu in 0.1.3
+
+Wenn der Browser die Tonwiedergabe blockiert, bleibt ein eigener Hinweis mit
+**Ton freigeben** sichtbar. Ein Klick oder Enter auf dem Knopf versucht die
+Wiedergabe erneut. Verlassen entfernt den Hinweis; verspätete Antworten einer
+alten Verbindung können ihn nicht wieder einblenden.
+
+Die Servervorbereitung kann mit `node deploy/configure.mjs` sichere, getrennte
+Schlüssel erzeugen und die Eingaben prüfen. Vorhandene Konfigurationen bleiben
+unangetastet. Anleitung: [SERVER.md](SERVER.md).
+
+Der Audio-Regressionstest verwendet einen absichtlich erzeugten Browserfehler
+und synthetischen Ton: `node test/audio-recovery.mjs`. Die normalen WebRTC-Tests
+warten ausdrücklich auf tatsächlich empfangene RTP-Daten und dekodierte
+Videobilder. Desktop-Smoke-Tests verwenden jeweils ein eigenes Testprofil.
+
+Windows-Installation und Deinstallation sowie zwei gebaute App-Instanzen auf
+Windows und Ubuntu/WSL wurden geprüft. Ergebnisse und genaue Grenzen:
+[Prüfbericht 0.1.3](VERIFICATION-0.1.3.md).
+
+## Vorherige Verbesserungen in 0.1.2
 
 - Die Verbindungsanzeige prüft den tatsächlich gewählten WebRTC-Weg: direkt
   oder über einen TURN-Vermittlungsserver. Wenn verfügbar, zeigt sie die

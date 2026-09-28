@@ -1,7 +1,27 @@
 const { app, BrowserWindow, session, desktopCapturer, ipcMain } = require('electron');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 const { installCaptureHandler } = require('./capture.cjs');
 const diagnosticMode = process.argv.includes('--diagnose-linux');
+// Some Windows driver/Electron combinations crash while starting Chromium's
+// GPU helper before the window exists. SofaFunk is a small WebRTC client and
+// remains usable with software compositing; prefer a reliable launch there.
+if (process.platform === 'win32') {
+  // Electron may start its GPU helper before app.commandLine is evaluated.
+  // Relaunch once with the flags present from process start so broken host
+  // graphics DLLs cannot terminate the user's app before its window appears.
+  if (!process.argv.includes('--sofa-gpu-safe')) {
+    const child = spawn(process.execPath, [...process.argv.slice(1), '--sofa-gpu-safe', '--disable-gpu', '--disable-gpu-compositing', '--use-angle=swiftshader'], { detached: true, stdio: 'ignore', windowsHide: true });
+    child.unref();
+    app.quit();
+  }
+  app.disableHardwareAcceleration();
+  // Electron 44 can still create a GPU helper before the app window when the
+  // host has a broken/missing graphics DLL. Force the software path too.
+  app.commandLine.appendSwitch('disable-gpu');
+  app.commandLine.appendSwitch('disable-gpu-compositing');
+  app.commandLine.appendSwitch('use-angle', 'swiftshader');
+}
 if (diagnosticMode) {
   require('./linux-diagnostics.cjs').diagnoseLinux().then(report => {
     console.log(JSON.stringify(report, null, 2));

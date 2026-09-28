@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { setTimeout as delay } from 'node:timers/promises';
 import { createSignalServer } from '../server/signal.mjs';
 import { serverEndpoint } from '../deploy/check-server.mjs';
 const remoteEndpoint=process.env.TEST_SERVER_URL?serverEndpoint(process.env.TEST_SERVER_URL):undefined;
@@ -24,6 +25,7 @@ const signalUrl=remoteEndpoint?.href||`ws://127.0.0.1:${service.server.address()
 const pageUrl=signalUrl.replace(/^ws/, 'http');
 const room=`rtc_${randomUUID().replaceAll('-','')}`;
 const results=[];
+const mediaReceipts=[];
 let browser, passed=false;
 const errors=[];
 async function actor(name) {
@@ -53,9 +55,23 @@ async function actor(name) {
   return {page,context};
 }
 async function connected(a,b){await Promise.all([a,b].map(p=>p.waitForFunction(()=>document.getElementById('badge').textContent.includes('Zusammen'),{},{timeout:25000})));}
-async function received(page,kind){await page.waitForFunction(async kind=>{const stats=await window.testPeers.at(-1)?.getStats();return stats&&[...stats.values()].some(s=>s.type==='inbound-rtp'&&s.kind===kind&&s.bytesReceived>500);},kind,{timeout:20000});}
+async function received(page,kind){
+  // waitForFunction treats an async predicate's Promise as truthy in the
+  // pinned Playwright version. Await each stats snapshot before deciding.
+  const deadline=performance.now()+20000;
+  do {
+    const receipt=await page.evaluate(async kind=>{
+      const stats=await window.testPeers.at(-1)?.getStats();
+      const incoming=stats&&[...stats.values()].find(s=>s.type==='inbound-rtp'&&s.kind===kind&&s.bytesReceived>500&&(kind!=='video'||s.framesDecoded>0));
+      return incoming?{kind:incoming.kind,bytesReceived:incoming.bytesReceived,packetsReceived:incoming.packetsReceived,...(kind==='video'?{framesDecoded:incoming.framesDecoded}:{} )}:null;
+    },kind);
+    if(receipt){mediaReceipts.push(receipt);return;}
+    await delay(100);
+  }while(performance.now()<deadline);
+  throw new Error(`No verified incoming ${kind} RTP within 20 seconds`);
+}
 try {
-  browser=await chromium.launch({headless:true,executablePath:process.env.TEST_CHROME||undefined,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--autoplay-policy=no-user-gesture-required']});
+  browser=await chromium.launch({headless:true,executablePath:process.env.TEST_CHROME||undefined,args:['--use-fake-device-for-media-stream','--use-fake-ui-for-media-stream','--autoplay-policy=no-user-gesture-required','--mute-audio']});
   const {page:a}=await actor('Mois');const {page:b}=await actor('Kollege');
   await a.screenshot({path:path.join(outputDirectory,'offline.png'),fullPage:true});
   await Promise.all([a.locator('#join').click(),b.locator('#join').click()]);await connected(a,b);results.push('Two independent browser contexts connected through actual WebSocket signaling + WebRTC');
@@ -110,6 +126,6 @@ try {
   results.push('Reconnect establishes fresh WebRTC, stops all capture and requires explicit media restart');
   assert.deepEqual(errors,[]);passed=true;console.log(results.join('\n'));
 } finally {
-  await writeFile(path.join(outputDirectory,'rtc-results.json'),JSON.stringify({passed,results,errors,testedAt:new Date().toISOString(),externalServer:Boolean(remoteEndpoint),limitations:['Synthetic capture sources; not physical devices',remoteEndpoint?'Separate server and TURN path from this computer; both peers still use the same client network':relayTest?'Real coturn relay; local test does not verify two home NATs or public TURN':'Loopback network; not two home NATs','Chromium engine; native screen picker and CachyOS Wayland need device checks']},null,2));
+  await writeFile(path.join(outputDirectory,'rtc-results.json'),JSON.stringify({passed,results,mediaReceipts,errors,testedAt:new Date().toISOString(),externalServer:Boolean(remoteEndpoint),limitations:['Synthetic capture sources; not physical devices',remoteEndpoint?'Separate server and TURN path from this computer; both peers still use the same client network':relayTest?'Real coturn relay; local test does not verify two home NATs or public TURN':'Loopback network; not two home NATs','Chromium engine; native screen picker and CachyOS Wayland need device checks']},null,2));
   await browser?.close();await service?.close();
 }
