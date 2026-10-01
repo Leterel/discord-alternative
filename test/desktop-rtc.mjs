@@ -15,7 +15,7 @@ const apps=[],errors=[],steps=[];
 let passed=false;
 async function actor(name) {
   const profile=await mkdtemp(path.join(output,'profile-'));
-  const gpuSafe=process.platform==='win32'&&process.env.TEST_DESKTOP_EXE?['--sofa-gpu-safe','--disable-gpu','--disable-gpu-compositing','--use-angle=swiftshader']:[];
+  const gpuSafe=process.env.TEST_GPU_SAFE==='1'?['--sofa-gpu-safe']:[];
   const application=await electron.launch({
     args:[...gpuSafe,...(process.env.TEST_DESKTOP_EXE?[]:['.']),`--user-data-dir=${profile}`],
     executablePath:process.env.TEST_DESKTOP_EXE||undefined,env,timeout:30000

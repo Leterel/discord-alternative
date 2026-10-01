@@ -12,13 +12,15 @@ Die Version enthält außerdem das lokale Werkzeug `deploy/configure.mjs` für
 die Servervorbereitung. Es erzeugt unabhängige Schlüssel, prüft Adressen und
 überschreibt keine vorhandene Konfiguration. Es stellt keinen Server bereit.
 
-Unter Windows startet die App bei problematischer Chromium-GPU-Umgebung einmal
-mit erzwungenem Software-Compositing neu. Dadurch wird der GPU-DLL-Abbruch aus
-dem ursprünglichen Screenshot umgangen; der neue Prozess läuft mit Exit-Code 0
-und bleibt geöffnet. Dieser direkte Starttest wurde mit einem separaten Profil
-aus der entpackten 0.1.3-App ausgeführt. Der Playwright-Smoke-Test, der den
-ersten Launcherprozess selbst überwacht, sieht diesen absichtlichen Neustart
-als Prozesswechsel und ist dafür kein passender Nachweis.
+## Korrektur am 01.10.2026
+
+Der spekulative automatische GPU-Neustart wurde entfernt. Ein behobener
+Screenshot-Absturz ist nicht nachgewiesen. Der normale Start aus dem aktuellen
+Quellstand besteht den Electron-Smoke-Test außerhalb der Sandbox (Fenster,
+Preload, deaktivierte Node-Integration); in der Sandbox schließt das Fenster.
+Softwaredarstellung bleibt explizit über --sofa-gpu-safe wählbar.
+40 Unit-Tests bestanden, ein Linux-spezifischer Fall auf Windows ausgelassen.
+Die folgenden alten Paketbelege sind kein Test des jetzt geänderten Quellstands.
 
 ## Tatsächlich geprüft
 
@@ -65,7 +67,7 @@ Windows-Prozessrechte. Details: [Installer-Prüfung](WINDOWS-INSTALLER-VERIFICAT
 | sofa-funk-0.1.3.tar.gz | 118917342 | `59cd1138783cd7ab33e5636894c941d6ccb8f9c2bfb2caa38a045e7f4fbcf4e6` |
 
 Windows-Installer: x64 NSIS, **nicht signiert** (`NotSigned` geprüft). Dieser
-Build enthält den GPU-Startfix; der vorherige Installer-Beleg gehört zum
+Build enthält den inzwischen verworfenen GPU-Neustart; der vorherige Installer-Beleg gehört zum
 Quellstand vor diesem Fix.
 Linux: x64, unter Ubuntu/WSL gebaut. Der tatsächliche Start des AppImage-Launchers
 auf CachyOS ist nicht belegt; getestet wurde die gebaute Linux-Binary.

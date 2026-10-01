@@ -11,9 +11,8 @@ assert.ok(expectedVersion.length <= 32 && /^(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0
 const env = { ...process.env };
 delete env.ELECTRON_RUN_AS_NODE;
 await mkdir(evidence, { recursive: true });
-// The packaged launcher hands off once on Windows so GPU flags are present
-// before Electron starts Chromium. Attach directly to that safe child here.
-const gpuSafe = process.platform === 'win32' ? ['--sofa-gpu-safe', '--disable-gpu', '--disable-gpu-compositing', '--use-angle=swiftshader'] : [];
+// Exercise ordinary startup unless explicitly testing the troubleshooting flag.
+const gpuSafe = process.env.TEST_GPU_SAFE === '1' ? ['--sofa-gpu-safe'] : [];
 const application = await electron.launch({ executablePath, args: [...gpuSafe, `--user-data-dir=${profile}`], env, timeout: 30000 });
 try {
   application.context().setDefaultTimeout(15000);
