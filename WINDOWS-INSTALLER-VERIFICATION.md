@@ -1,5 +1,27 @@
 # Windows installer verification
 
+## Fresh SofaFunk 0.1.3 verified on 7 October 2026
+
+`SofaFunk Setup 0.1.3-fresh-20261007.exe` completed a real per-user install,
+installed application check and native uninstall on Windows 11. This is the
+fresh build without the rejected automatic GPU relaunch.
+
+SHA-256: `9aa360b50509f1c295c4befd10d7cc9061052d0caa4df86841227d79d5f0b302`
+
+The guarded test ran 12:38:54–12:39:09 UTC. Both processes exited 0; installed
+ASAR, version 0.1.3, isolated profile, preload bridge and renderer security
+checks passed. No test shortcuts, installation directory or installation
+records remained. The hash-verified installer cache copy was removed.
+The existing profile's 68 entries retained identical metadata. No media was
+requested. The executable remains unsigned. Upgrade and interactive-wizard
+tests are still outside the verified scope.
+
+Run `test/windows-installer.ps1` as below, with this artifact path and explicit
+`-ExpectedVersion '0.1.3' -ExpectedSHA256 '<hash above>'`. Evidence is under
+`outputs/discord-alternative/20261007-complete/installer` in the workspace.
+The original `0x80000003` crash remains unreproduced; this successful run does
+not establish that its cause has been fixed.
+
 ## SofaFunk 0.1.3 verified on 28 September 2026
 
 The new 0.1.3 installer completed the same real per-user install, isolated

@@ -1,13 +1,36 @@
-# Fortschritt — 2026-09-28
+# Fortschritt — 2026-10-07
+
+## Frischer Windows-Installer und echte Desktop-Medienübertragung
+
+- Der frische Installer `SofaFunk Setup 0.1.3-fresh-20261007.exe` wurde jetzt
+  tatsächlich in einem eigenen Testordner installiert. App-Version 0.1.3,
+  installierte ASAR, Preload und Renderer-Isolation bestanden die Prüfung.
+  Installieren und Deinstallieren jeweils Exitcode 0; Testverknüpfungen und
+  Registrierung entfernt, ursprüngliches Benutzerprofil unverändert.
+- Exakter Installer-SHA256:
+  `9AA360B50509F1C295C4BEFD10D7CC9061052D0CAA4DF86841227D79D5F0B302`.
+- Zwei Instanzen der gebauten Windows-App bestehen echten bidirektionalen
+  WebRTC-Chat und Wiederverbindung mit getrennten Testprofilen.
+- Neuer Test `npm run test:desktop-media`: acht Schritte mit erzeugtem Audio,
+  Kamera- und Bildschirmmaterial bestanden. Audio-RTP in beide Richtungen,
+  dekodiertes Video, parallele Kamera/Freigabe, Rückkehr zur Kamera, gestoppte
+  Tracks beim Neuverbinden, danach wieder Chat und Audio sowie Verlassen geprüft.
+  Medienquellen sind synthetisch und Ausgabe stumm; keine physischen Geräte
+  und kein Desktopinhalt wurden aufgenommen.
+- Automatischer GPU-Neustart ist entfernt. Normaler Start wurde geprüft;
+  `--sofa-gpu-safe` bleibt eine bewusst gewählte Diagnoseoption. Der frühere
+  `0x80000003`-Absturz ist weiterhin nicht reproduziert oder als behoben belegt.
+- Installer bleibt unsigniert. Zwei Heimnetze, öffentliches TLS/TURN sowie
+  native CachyOS-/Wayland-Freigabe sind noch offen.
+- Aktuelle Nachweise: [VERIFICATION-20261007.md](VERIFICATION-20261007.md).
+
+Die folgenden Abschnitte beschreiben ältere Prüfstände und ihre Grenzen.
 
 ## 0.1.3 — Ton freigeben und geprüfte Installationspakete
 
-- Windows-Start robuster gemacht: vor Electron-Initialisierung wird auf
-  Windows die GPU-Hardwarebeschleunigung samt GPU-Compositing-Schalter
-  deaktiviert. Damit umgeht die App den beobachteten Chromium-GPU-
-  Unterprozess-Abbruch (`0x80000003`); WebRTC läuft weiter über den
-  Softwarepfad. Der neue Installer-Build braucht noch einen abschließenden
-  Starttest.
+- Ein zwischenzeitlicher Versuch, den Windows-Absturz durch erzwungene
+  Softwaredarstellung und einen automatischen Neustart zu umgehen, wurde
+  verworfen. Dieser Versuch ist kein belegter Fix des ursprünglichen Fehlers.
 - Der neu gebaute Installer ist `C8A853ABC6F0CB3912415B33AA96401DE0B2670E6BE122C6460EC52A946DEBA9`.
   Ein direkter Start der entpackten App blieb nach dem sicheren Neustart offen;
   der vollständige Install-/Deinstallationslauf gehört noch zum vorherigen

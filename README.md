@@ -8,7 +8,7 @@ Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 [Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3)
 (privates Repository; GitHub-Anmeldung erforderlich).
 
-**Windows:** den SofaFunk-Installer (`.exe`) ausführen, Installationsordner wählen
+**Windows:** `SofaFunk Setup 0.1.3-fresh-20261007.exe` ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
 Codesigning-Zertifikat.
 
@@ -64,6 +64,8 @@ garantiert keine Verbindung zwischen zwei Heimnetzen.
 ```powershell
 npm test
 npm run test:desktop
+npm run test:desktop-rtc
+npm run test:desktop-media
 $env:TEST_CHROME = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
 npm run test:e2e
 npm run test:picker
@@ -82,6 +84,14 @@ Der Integrationstest verbindet zwei echte WebRTC-Peers mit synthetischem Audio,
 Kamera- und Bildschirmmaterial. Er prüft Chat, RTP-Übertragung, Stop und Rejoin.
 Der Fenstertest prüft das echte Electron-Fenster und die isolierte
 Preload-Brücke. Details und offene Gerätetests: [PROGRESS.md](PROGRESS.md).
+
+`test:desktop-media` prüft zwei echte Desktop-Prozesse mit erzeugtem Audio und
+Canvas-Bildern: RTP-Empfang, Kamera, parallele Bildschirmübertragung, Stop und
+Neuverbinden. Keine physischen Aufnahmegeräte oder Desktopinhalte werden
+verwendet. Mit `TEST_DESKTOP_EXE` lässt sich der Test gegen eine gebaute App
+ausführen; jeder Test erhält eigene Profile. Der frische Windows-Installer
+wurde installiert, geprüft und wieder deinstalliert. Aktueller Nachweis mit
+exaktem Paket-Hash: [Prüfung vom 07.10.2026](VERIFICATION-20261007.md).
 
 Zusätzlich wurde am 23.09. eine Verbindung über einen echten lokalen coturn-Relay
 erzwungen und für beide Peers nachgewiesen. Das prüft Relay und temporäre
