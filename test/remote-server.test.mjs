@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
+import { WebSocketServer } from 'ws';
 import { createSignalServer } from '../server/signal.mjs';
 import { checkServer, serverEndpoint } from '../deploy/check-server.mjs';
 
@@ -22,12 +23,38 @@ test('checker performs real HTTP and bidirectional authenticated WebSocket signa
     const result = await checkServer({ url, secret });
     assert.equal(result.health, true); assert.equal(result.authenticatedPeers, 2);
     assert.equal(result.bidirectionalSignaling, true); assert.equal(result.turnCredentials, true);
+    assert.equal(result.rejectsWrongKey, true);
     assert.equal(result.tls, false);
     assert.equal(JSON.stringify(result).includes(secret), false);
     assert.equal(JSON.stringify(result).includes('private-turn-secret'), false);
     assert.equal(JSON.stringify(result).includes('credential"'), false);
     await service.close(); assert.equal(service.rooms.size, 0);
   });
+});
+
+test('checker fails closed when a healthy endpoint accepts wrong keys, hangs, or closes ambiguously', async () => {
+  for (const mode of ['accept', 'hang', 'close']) {
+    const server = http.createServer((_request, response) => response.end('ok'));
+    const sockets = new WebSocketServer({ server });
+    sockets.on('connection', socket => socket.on('message', () => {
+      if (mode === 'accept') socket.send(JSON.stringify({ type: 'joined', id: 'unprotected' }));
+      if (mode === 'close') socket.close(1000, 'sensitive server reason');
+    }));
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    try {
+      await assert.rejects(checkServer({ url: `ws://127.0.0.1:${server.address().port}`, secret, timeoutMs: 150 }), error => {
+        assert.match(error.message, /Raumschluessel/);
+        assert(!error.message.includes(secret));
+        assert(!error.message.includes('sensitive server reason'));
+        return true;
+      });
+    } finally {
+      for (const socket of sockets.clients) socket.terminate();
+      await new Promise(resolve => sockets.close(resolve));
+      server.closeAllConnections();
+      await new Promise(resolve => server.close(resolve));
+    }
+  }
 });
 
 test('checker rejects missing TURN, but can explicitly check local development without it', async () => {

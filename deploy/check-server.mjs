@@ -68,6 +68,29 @@ function hasRelayCredentials(joined) {
   });
 }
 
+async function rejectsWrongKey(endpoint, secret, timeoutMs) {
+  // Positive login alone cannot distinguish authentication from a server that
+  // accepts every key. Probe a fresh room, never an existing conversation.
+  const socket = new WebSocket(endpoint, { handshakeTimeout: timeoutMs, maxPayload: 64 * 1024 });
+  try {
+    await new Promise((resolve, reject) => {
+      const timer = setTimeout(() => finish(new Error('Server weist einen falschen Raumschluessel nicht rechtzeitig ab.')), timeoutMs);
+      let finished = false;
+      const finish = error => {
+        if (finished) return;
+        finished = true; clearTimeout(timer);
+        error ? reject(error) : resolve();
+      };
+      // Appending a fresh nonce guarantees this differs even for unusual keys.
+      socket.once('open', () => socket.send(JSON.stringify({ type: 'join', name: 'Servercheck Zugang',
+        room: `check_${randomUUID().replaceAll('-', '')}`, secret: `${secret}_${randomUUID()}` })));
+      socket.on('message', () => finish(new Error('Server akzeptiert einen falschen Raumschluessel oder antwortet unerwartet.')));
+      socket.once('close', code => finish(code === 4003 ? undefined : new Error('Server lehnt falsche Raumschluessel nicht eindeutig mit Code 4003 ab.')));
+      socket.on('error', () => finish(new Error('WSS-Verbindung beim Pruefen des Zugangsschutzes fehlgeschlagen.')));
+    });
+  } finally { socket.terminate(); }
+}
+
 export async function checkServer({ url, secret, timeoutMs = 10000, requireTurn = true }) {
   const endpoint = serverEndpoint(url);
   if (typeof secret !== 'string' || secret.length < 12) throw new Error('ROOM_SECRET braucht mindestens 12 Zeichen.');
@@ -77,6 +100,7 @@ export async function checkServer({ url, secret, timeoutMs = 10000, requireTurn 
     const response = await fetch(health, { redirect: 'error', signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok || (await response.text()).trim() !== 'ok') throw new Error();
   } catch { throw new Error('Health-Check fehlgeschlagen; DNS, TLS, Caddy und Signalisierungsserver pruefen.'); }
+  await rejectsWrongKey(endpoint, secret, timeoutMs);
   const clients = [];
   try {
     const room = `check_${randomUUID().replaceAll('-', '')}`;
@@ -97,7 +121,7 @@ export async function checkServer({ url, secret, timeoutMs = 10000, requireTurn 
     if (backward.from !== two.id || backward.data?.serverCheck !== nonce) throw new Error('Signalisierung B nach A fehlgeschlagen.');
     const turnCredentials = hasRelayCredentials(one) && hasRelayCredentials(two);
     if (requireTurn && !turnCredentials) throw new Error('Server liefert keine gueltigen temporaeren TURN-Zugangsdaten. TURN_URLS und TURN_SECRET am Server pruefen.');
-    return { health: true, tls: endpoint.protocol === 'wss:', authenticatedPeers: 2, bidirectionalSignaling: true, turnCredentials,
+    return { health: true, tls: endpoint.protocol === 'wss:', rejectsWrongKey: true, authenticatedPeers: 2, bidirectionalSignaling: true, turnCredentials,
       limitations: ['Kein TURN-Datentransport getestet; dafuer den externen RTC-Test ausfuehren.', 'Kein Beweis fuer zwei Heimnetze oder native Bildschirmfreigabe.'] };
   } finally { for (const client of clients) client.close(); }
 }

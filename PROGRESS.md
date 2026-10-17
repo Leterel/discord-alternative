@@ -159,6 +159,20 @@ Die folgenden Abschnitte dokumentieren den vorherigen Stand 0.1.1.
 
 ## Noch offen
 
+### Servercheck: Zugangsschutz tatsächlich prüfen
+
+- Der portable Servercheck prüft vor seinem regulären Teilnehmerpaar mit
+  einer echten zusätzlichen WebSocket-Verbindung, dass ein falscher
+  Raumschlüssel mit Code `4003` abgelehnt wird. Bisher konnte ein Server ohne
+  funktionierenden Schlüsselvergleich als authentifiziert erscheinen.
+- Die sechs gezielten Tests in `test/remote-server.test.mjs` bestehen mit
+  lokalen HTTP-/WebSocket-Servern. Dazu gehören ein Server, der falsche
+  Schlüssel akzeptiert, ein stummer Server und ein uneindeutiger Abbruch.
+- Kein öffentlicher Server, keine echte Medienaufnahme und keine Änderung
+  an Router, DNS oder Hosting wurden dafür benötigt.
+
+### Ausstehende Zielsystemtests
+
 - Physische Mikrofone/Kameras und zwei verschiedene Heimnetze.
 - TURN über das öffentliche Internet und öffentlich gültige TLS-Konfiguration.
 - CachyOS/Wayland-Portal-Picker und Vollinstallation auf beiden Zielrechnern.

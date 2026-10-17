@@ -35,7 +35,13 @@ temporären TURN-Zugangsdaten. TLS-Zertifikate werden normal geprüft;
 Zertifikatsfehler werden nicht übergangen. HTTP-Weiterleitungen im Health-Check
 gelten als Fehler, damit ein anderes Login-Portal keinen Erfolg vortäuscht.
 
-Exitcode 0 bestätigt `/health`, zwei authentifizierte WSS-Verbindungen,
+Vor der Anmeldung prüft ein zusätzlicher Client in einem eigenen Testraum,
+dass ein absichtlich falscher Schlüssel mit dem SofaFunk-Code `4003` abgelehnt
+wird. Ein Server, der jeden Schlüssel akzeptiert, besteht die Prüfung nicht.
+Auch fehlende Antworten und andere Verbindungsabbrüche gelten als Fehler.
+
+Exitcode 0 bestätigt `/health`, die Ablehnung des falschen Schlüssels,
+zwei authentifizierte WSS-Verbindungen,
 Signalisierung in beide Richtungen und ausgelieferte, noch gültige temporäre
 TURN-Zugangsdaten. Das allein beweist **keinen TURN-Datentransport**.
 Fehler brechen mit Exitcode 1 ab. Einzelne Netzwerkwartezeiten sind begrenzt.
