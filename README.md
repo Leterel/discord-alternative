@@ -1,5 +1,7 @@
 # SofaFunk
 
+Erster eigener Test: [Kurzanleitung](ERSTTEST.md).
+
 Ein privater Gesprächsraum für zwei Freunde: Textchat, Mikrofon, Kamera und
 Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 

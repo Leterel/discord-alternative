@@ -176,3 +176,18 @@ Die folgenden Abschnitte dokumentieren den vorherigen Stand 0.1.1.
 - Physische Mikrofone/Kameras und zwei verschiedene Heimnetze.
 - TURN über das öffentliche Internet und öffentlich gültige TLS-Konfiguration.
 - CachyOS/Wayland-Portal-Picker und Vollinstallation auf beiden Zielrechnern.
+
+## 19.10.2026 — Einfacher Ersttest und erneute Regression
+
+ERSTTEST.md ergänzt: lokaler Windows-Testserver auf Loopback, zufälliger
+Testschlüssel, Zwei-Fenster-Chat und separater Weg zum CachyOS-/Heimnetztest.
+Alle 41 ausführbaren Node-Tests bestanden; ein Linux-Symlinktest unter Windows
+ausgelassen (42 insgesamt). Der erste Sandbox-Lauf blockierte lokale Verbindungen;
+der unveränderte Lauf außerhalb bestand. Keine öffentliche Bereitstellung.
+
+
+Zusätzlich acht Desktop-Medienschritte mit zwei echten Electron-Prozessen bestanden:
+Chat, bidirektionales Audio-RTP, dekodierte Kamera, paralleler Bildschirmstream,
+Stop/Rückkehr zur Kamera, Neuverbinden mit Track-Stopp, erneuter Chat/Audio und
+Verlassen. Nur synthetische Medien, stumme Ausgabe und getrennte Testprofile.
+Keine physischen Aufnahmegeräte und keine Desktopinhalte verwendet.
