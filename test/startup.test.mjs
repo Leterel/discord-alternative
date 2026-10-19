@@ -8,6 +8,7 @@ for (const safe of [false, true]) {
   test(`Windows startup stays in its process (${safe ? 'software' : 'default'} mode)`, async () => {
     const events = [], windows = [];
     const app = {
+      getPath: () => '/test-profile',
       disableHardwareAcceleration: () => events.push('software'),
       commandLine: { appendSwitch: () => assert.fail('Unexpected graphics override') },
       whenReady: () => { events.push('ready'); return Promise.resolve(); },
@@ -19,6 +20,7 @@ for (const safe of [false, true]) {
         this.webContents = { setWindowOpenHandler() {}, on() {} };
       }
       loadFile(file) { events.push(file); }
+      on() {}
     }
     vm.runInNewContext(source, {
       require(name) {
@@ -26,10 +28,12 @@ for (const safe of [false, true]) {
           setPermissionRequestHandler() {}, setPermissionCheckHandler() {},
         } }, desktopCapturer: {}, ipcMain: {} };
         if (name === 'node:path') return { join: (...parts) => parts.join('/') };
+        if (name === 'node:os') return {};
+        if (name === './diagnostics.cjs') return { createDiagnostics: () => ({ record() {} }) };
         if (name === './capture.cjs') return { installCaptureHandler() {} };
         assert.fail(`Unexpected dependency during startup: ${name}`);
       },
-      process: { platform: 'win32', argv: safe ? ['electron', '--sofa-gpu-safe'] : ['electron'], env: {} },
+      process: { platform: 'win32', argv: safe ? ['electron', '--sofa-gpu-safe'] : ['electron'], env: {}, on() {} },
       __dirname: '/desktop',
     });
     await new Promise(resolve => setImmediate(resolve));

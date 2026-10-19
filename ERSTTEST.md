@@ -2,7 +2,7 @@
 
 ## Auf diesem Windows-PC, ohne öffentlichen Server
 
-1. Den Windows-Installer aus dem [Release 0.1.3](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3) installieren: `SofaFunk Setup 0.1.3-fresh-20261007.exe`.
+1. Den neu bereitgestellten Windows-Installer `SofaFunk Setup 0.1.4.exe` installieren. Der ältere [Release 0.1.3](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3) enthält die neue Diagnose noch nicht.
 2. In diesem Repository mit installiertem Node.js 24 einmal `npm ci` ausführen, falls die Abhängigkeiten fehlen.
 3. In PowerShell einen nur lokal erreichbaren Testserver starten:
 
@@ -45,7 +45,38 @@ Die bisherigen Ubuntu/WSL-Belege ersetzen diesen CachyOS-/Wayland-Test nicht.
 
 ## Wenn die Windows-App abstürzt
 
-Den genauen Zeitpunkt, die ausgeführte Aktion, Windows-Version und Paketnamen
-notieren. Fehlermeldung ohne Schlüssel oder Gesprächsinhalte festhalten.
+Version 0.1.4 protokolliert Start, Bereitschaft, reguläres Ende und
+von Electron gemeldete Renderer-/GPU-Abstürze automatisch im App-Profil.
+Das Protokoll enthält ausschließlich Zeitpunkt, Ereignistyp, bekannte
+Absturzursache, Prozesstyp und Exitcode. Keine Raumschlüssel, Nachrichten,
+Serveradressen, Aufnahmen oder Fehlertexte werden gespeichert. Es bleibt lokal;
+es gibt keinen automatischen Upload. Zwei Dateien mit jeweils etwa 64 KiB
+begrenzen die Speicherung. Nicht schreibbare Protokollordner verhindern den
+App-Start nicht.
+
+Nach dem Beenden im Repository mit PowerShell den Bericht erzeugen:
+
+```powershell
+npm run --silent check:app > sofa-diagnose.json
+```
+
+Der Bericht zeigt die letzten maximal 100 Ereignisse, App-/Electron-Version,
+Betriebssystemversion und Architektur. Für eine neu gebaute installierte App
+denselben Schalter an die EXE anhängen:
+
+```powershell
+& 'C:\Pfad\zu\SofaFunk.exe' --diagnose-app > sofa-diagnose.json
+```
+
+Der alte veröffentlichte Installer 0.1.3 enthält diese neue Diagnose noch nicht.
+Ein eigener `--user-data-dir` muss beim Diagnoseaufruf erneut angegeben werden,
+sonst wird das normale App-Profil ausgewertet. Die Diagnose öffnet kein Fenster
+und verändert bestehende Ereignisse nicht. Den Bericht vor dem Teilen prüfen;
+Zeitpunkte und Systemversion sind enthalten. Unter Linux genauso das AppImage
+mit `--diagnose-app` aufrufen.
+
+Zusätzlich den genauen Zeitpunkt und die ausgeführte Aktion notieren.
+Ein harter Abbruch des Hauptprozesses kann ohne abschließendes Ereignis bleiben;
+der Bericht ersetzt deshalb keine Windows-Ereignisanzeige oder Speicheranalyse.
 Der früher gemeldete Absturz ist weiterhin nicht nachweislich behoben.
 Ein erfolgreicher lokaler Test darf nicht als Beweis dafür gelten.

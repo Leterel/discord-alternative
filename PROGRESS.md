@@ -1,4 +1,18 @@
-# Fortschritt — 2026-10-07
+# Fortschritt — 2026-10-19
+
+## 0.1.4 — lokale Absturzdiagnose und neues Windows-Paket
+
+- Begrenztes, lokales Lifecycle-/Crashprotokoll mit strikter Feld-Whitelist
+  implementiert. Keine Gesprächsinhalte, Adressen, Schlüssel oder Fehlertexte;
+  kein Upload. `--diagnose-app` exportiert Systemversion und letzte Ereignisse.
+- 44 Node-Tests bestanden, ein Linux-Symlinkfall unter Windows ausgelassen.
+  Echter Desktop-Smoke einschließlich Diagnose-CLI aus Source und Paket bestanden.
+- Neuer separater Windows-Installer 0.1.4 gebaut; die gepackte App besteht alle
+  acht RTC-Medienschritte mit zwei echten Prozessen und synthetischen Medien.
+  Frühere Installer unverändert, keine physischen Aufnahmen verwendet.
+- Nachweise, Installer-Hash und Grenzen: [VERIFICATION-0.1.4.md](VERIFICATION-0.1.4.md).
+  Öffentlicher Server, zwei Heimnetze und CachyOS/Wayland bleiben offen;
+  der frühere Absturz wird nicht als behoben behauptet.
 
 ## Frischer Windows-Installer und echte Desktop-Medienübertragung
 

@@ -1,6 +1,7 @@
 node_modules/
 dist/
 dist-oct07/
+dist-0.1.4/
 .env
 *.log
 test-results/

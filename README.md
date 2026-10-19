@@ -2,6 +2,11 @@
 
 Erster eigener Test: [Kurzanleitung](ERSTTEST.md).
 
+Windows 0.1.4 ergänzt eine lokale Absturzdiagnose (`--diagnose-app`).
+Build und geprüfte Grenzen: [VERIFICATION-0.1.4.md](VERIFICATION-0.1.4.md).
+Die unten verlinkte GitHub-Veröffentlichung bleibt 0.1.3; 0.1.4 wurde noch
+nicht als GitHub-Release veröffentlicht.
+
 Ein privater Gesprächsraum für zwei Freunde: Textchat, Mikrofon, Kamera und
 Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 
