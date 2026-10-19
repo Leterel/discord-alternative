@@ -6,7 +6,7 @@ Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 ## Installieren und starten
 
 [Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3)
-(privates Repository; GitHub-Anmeldung erforderlich).
+(öffentliches Repository).
 
 **Windows:** `SofaFunk Setup 0.1.3-fresh-20261007.exe` ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
