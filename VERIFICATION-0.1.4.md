@@ -1,5 +1,9 @@
 # SofaFunk 0.1.4 — Windows-Diagnose, 19.10.2026
 
+Nachtrag 21.10.: Linux-Paket und Ubuntu/WSL-Laufzeit wurden separat nachgezogen.
+Siehe [VERIFICATION-0.1.4-LINUX.md](VERIFICATION-0.1.4-LINUX.md). Die folgenden
+Windows-Angaben und ihre damaligen Grenzen bleiben dem Stand vom 19.10. zugeordnet.
+
 ## Änderung
 
 Die App speichert jetzt lokale Lifecycle-Ereignisse und von Electron gemeldete

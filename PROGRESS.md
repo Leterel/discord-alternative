@@ -1,5 +1,20 @@
 # Fortschritt — 2026-10-19
 
+## 21.10.2026 — Linux 0.1.4 nachgezogen
+
+- Bestehendes Ubuntu 24.04.4/WSL und getrennte Linux-Abhängigkeiten verwendet;
+  keine Systeminstallation oder Änderung der Windows-`node_modules`.
+- 45/45 Node-Tests einschließlich Linux-Symlinkfall bestanden.
+- Neu gepackte 0.1.4-App: Desktop-Smoke, bereinigte Diagnose-CLI und alle acht
+  RTC-Medienschritte mit zwei echten Prozessen unter eigenem Xvfb bestanden.
+  Ausschließlich synthetische Medien, keine physischen Aufnahmen.
+- AppImage und tar.gz fertig gebaut und mit SHA256 ausgeliefert. Direkter
+  AppImage-Start ohne FUSE sowie acht Medienschritte aus dem entpackten tar.gz
+  bestanden. Diagnoseprüfung benutzt beim AppImage einen separat extrahierten,
+  per ASAR-Hash identischen Payload, weil der Runtime-Wrapper stdout verschmutzt.
+- Details und Grenzen: [VERIFICATION-0.1.4-LINUX.md](VERIFICATION-0.1.4-LINUX.md).
+  Ubuntu/Xvfb ist kein CachyOS-/Wayland- oder Heimnetz-Nachweis.
+
 ## 0.1.4 — lokale Absturzdiagnose und neues Windows-Paket
 
 - Begrenztes, lokales Lifecycle-/Crashprotokoll mit strikter Feld-Whitelist
