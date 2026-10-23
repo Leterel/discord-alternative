@@ -1,5 +1,15 @@
 # SofaFunk zum ersten Mal ausprobieren
 
+## Schnellstart ohne Umgebungsvariablen
+
+Im Quellordner einmal `npm ci --omit=dev` ausführen (nur falls Abhängigkeiten
+fehlen), dann `Start-Testserver.cmd` öffnen. Das Terminal nennt einen freien
+lokalen Port und einen neuen Testschlüssel. Zwei Browserfenster mit der genannten
+Browseradresse öffnen, die Werte mit verschiedenen Namen eintragen und Text
+in beide Richtungen senden. Keine Medienfreigabe dafür nötig. Für die installierte
+App die angezeigte WebSocket-Adresse verwenden. Strg+C beendet den Server.
+Nur derselbe PC; jeder Start bekommt einen neuen Schlüssel. Vorhandene produktive
+Servervariablen werden ignoriert. Die folgenden manuellen Varianten bleiben möglich.
 ## Auf diesem Windows-PC, ohne öffentlichen Server
 
 1. Den neu bereitgestellten Windows-Installer `SofaFunk Setup 0.1.4.exe` installieren. Der ältere [Release 0.1.3](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3) enthält die neue Diagnose noch nicht.
@@ -80,3 +90,4 @@ Ein harter Abbruch des Hauptprozesses kann ohne abschließendes Ereignis bleiben
 der Bericht ersetzt deshalb keine Windows-Ereignisanzeige oder Speicheranalyse.
 Der früher gemeldete Absturz ist weiterhin nicht nachweislich behoben.
 Ein erfolgreicher lokaler Test darf nicht als Beweis dafür gelten.
+

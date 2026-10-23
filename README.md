@@ -180,3 +180,19 @@ noch getestet werden. Der Docker-Stack wurde konfigurationsgeprüft und nicht
 
 MIT-Lizenz. Änderungen sollen die Verbindungs- und Freigabe-Abbruchtests
 erhalten. Abhängigkeiten bleiben per Lockfile fixiert.
+
+## Einfacher lokaler Ersttest (23.10.2026)
+
+Für einen reinen Browser-Test im Quellordner einmal `npm ci --omit=dev`
+ausführen, dann `Start-Testserver.cmd` öffnen oder `npm run demo` starten.
+Mit bereits vorhandenen Abhängigkeiten entfällt der Installationsschritt.
+Das Terminal zeigt Browseradresse, WebSocket-Adresse, Raum und frischen
+Testschlüssel. Zwei Browserfenster mit unterschiedlichen Namen öffnen und die
+angezeigten Werte eintragen; alternativ die installierte SofaFunk-App verwenden.
+Text benötigt keine Kamera-/Mikrofonfreigabe. Strg+C beendet den Testserver.
+
+Der Demo-Start bindet ausschließlich 127.0.0.1 an einen freien Port. Er erzeugt
+für jeden Start einen eigenen Schlüssel im Speicher und ignoriert HOST, PORT,
+ROOM_SECRET und TURN-Konfiguration aus der Umgebung. Kein öffentliches Hosting,
+kein Relay, keine Datei mit Schlüsseln. Andere Geräte erreichen diesen Modus
+nicht. Für einen tatsächlichen Fernanruf weiterhin SERVER.md beachten.

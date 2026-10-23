@@ -25,7 +25,8 @@
     "check:app": "electron . --diagnose-app",
     "dist:win": "electron-builder --win nsis --x64",
     "pack:win-portable": "electron-builder --win zip --x64",
-    "dist:linux": "electron-builder --linux AppImage tar.gz --x64"
+    "dist:linux": "electron-builder --linux AppImage tar.gz --x64",
+    "demo": "node server/demo.mjs"
   },
   "dependencies": {
     "ws": "8.21.3"

@@ -220,3 +220,14 @@ Chat, bidirektionales Audio-RTP, dekodierte Kamera, paralleler Bildschirmstream,
 Stop/Rückkehr zur Kamera, Neuverbinden mit Track-Stopp, erneuter Chat/Audio und
 Verlassen. Nur synthetische Medien, stumme Ausgabe und getrennte Testprofile.
 Keine physischen Aufnahmegeräte und keine Desktopinhalte verwendet.
+
+## 23.10.2026 — lokaler Demo-Server mit einem Startbefehl
+
+Start-Testserver.cmd / npm run demo erzeugt freien Loopbackport und frischen
+zufälligen Schlüssel ausschließlich im Speicher. Ignoriert produktive HOST-/
+PORT-/ROOM_SECRET-/TURN-Variablen; keine bestehende Konfiguration verändert.
+Mit Browser oder vorhandenem Client testbar, ohne neue Clientbinärdatei.
+45/45 ausführbare Windows-Node-Checks bestanden; ein Linux-Symlinkcheck wie zuvor
+plattformbedingt übersprungen. Neuer Integrationstest verbindet echte WebSockets,
+prüft falschen Schlüssel, Signalweitergabe, getrennte Demo-Instanzen und doppeltes
+Schließen. Kein neuer Fernverbindungs- oder Mediennachweis.
