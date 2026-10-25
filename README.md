@@ -4,29 +4,28 @@ Erster eigener Test: [Kurzanleitung](ERSTTEST.md).
 
 Windows 0.1.4 ergänzt eine lokale Absturzdiagnose (`--diagnose-app`).
 Build und geprüfte Grenzen: [VERIFICATION-0.1.4.md](VERIFICATION-0.1.4.md).
-Die unten verlinkte GitHub-Veröffentlichung bleibt 0.1.3; 0.1.4 wurde noch
-nicht als GitHub-Release veröffentlicht.
+Die geprüften Windows-/Linux-Pakete sind als GitHub-Vorabversion 0.1.4 verfügbar.
 
 Ein privater Gesprächsraum für zwei Freunde: Textchat, Mikrofon, Kamera und
 Bildschirmfreigabe. Windows 11 und Linux x64, mit eigener Server-Konfiguration.
 
 ## Installieren und starten
 
-[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.3)
+[Windows- und Linux-Downloads](https://github.com/Leterel/discord-alternative/releases/tag/v0.1.4)
 (öffentliches Repository).
 
-**Windows:** `SofaFunk Setup 0.1.3-fresh-20261007.exe` ausführen, Installationsordner wählen
+**Windows:** `SofaFunk.Setup.0.1.4.exe` ausführen, Installationsordner wählen
 und SofaFunk über das Startmenü öffnen. Der Prototyp hat kein
 Codesigning-Zertifikat.
 
-**Linux:** `SofaFunk-0.1.3.AppImage` ausführbar machen und starten:
+**Linux:** `SofaFunk-0.1.4.AppImage` ausführbar machen und starten:
 
 ```bash
-chmod +x SofaFunk-0.1.3.AppImage
-./SofaFunk-0.1.3.AppImage
+chmod +x SofaFunk-0.1.4.AppImage
+./SofaFunk-0.1.4.AppImage
 ```
 
-Alternativ `sofa-funk-0.1.3.tar.gz` in einen eigenen Ordner entpacken und darin
+Alternativ `sofa-funk-0.1.4.tar.gz` in einen eigenen Ordner entpacken und darin
 `./sofa-funk` starten. Beide Linux-Pakete wurden unter Ubuntu 24.04 in WSL
 gebaut. Das Fenster der gebauten Linux-Binary wurde dort geöffnet und geprüft.
 Ein vollständiger Test auf CachyOS/Wayland steht aus.
